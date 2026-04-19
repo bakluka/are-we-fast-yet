@@ -1,0 +1,3 @@
+#!/bin/sh
+export RUBY_GC_RACTOR_HEAP_INIT_BYTES="${RUBY_GC_RACTOR_HEAP_INIT_BYTES:-2621440}"
+exec ruby --yjit "$(dirname "$0")/../gateway.rb" "$@"
