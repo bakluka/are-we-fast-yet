@@ -1,0 +1,11 @@
+{
+  "ruby": {
+    "ruby/proxy.rb": 83,
+    "ruby/bin/proxy": 3
+  },
+  "go": {
+    "go/main.go": 209,
+    "go/pick.go": 19,
+    "go/pick_jsontext.go": 42
+  }
+}

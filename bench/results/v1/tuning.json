@@ -1,0 +1,272 @@
+[
+  {
+    "impl": "ruby-stock",
+    "workers": 4,
+    "route": "raw",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 61,
+    "cpu_us_per_request": 14.76,
+    "peak_rss_kb": 37444,
+    "peak_pss_kb": 31208,
+    "rps": 268645,
+    "requests": 2157765,
+    "latency_ms": {
+      "50": 0.95,
+      "75": 1.05,
+      "90": 1.08,
+      "99": 1.61
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      264825,
+      268928,
+      268645
+    ]
+  },
+  {
+    "impl": "ruby-heap",
+    "workers": 4,
+    "route": "raw",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 64,
+    "cpu_us_per_request": 13.7,
+    "peak_rss_kb": 92892,
+    "peak_pss_kb": 86800,
+    "rps": 282422,
+    "requests": 2269982,
+    "latency_ms": {
+      "50": 0.834,
+      "75": 0.94,
+      "90": 1.07,
+      "99": 3.08
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      282422,
+      277949,
+      294465
+    ]
+  },
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "route": "raw",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 62,
+    "cpu_us_per_request": 10.87,
+    "peak_rss_kb": 93436,
+    "peak_pss_kb": 87101,
+    "rps": 355723,
+    "requests": 2857030,
+    "latency_ms": {
+      "50": 0.684,
+      "75": 0.726,
+      "90": 0.774,
+      "99": 2.97
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      361177,
+      347904,
+      355723
+    ]
+  },
+  {
+    "impl": "ruby-interp",
+    "workers": 4,
+    "route": "raw",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 60,
+    "cpu_us_per_request": 11.51,
+    "peak_rss_kb": 94896,
+    "peak_pss_kb": 88774,
+    "rps": 345344,
+    "requests": 2773255,
+    "latency_ms": {
+      "50": 0.712,
+      "75": 0.781,
+      "90": 0.816,
+      "99": 1.23
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      345887,
+      344566,
+      345344
+    ]
+  },
+  {
+    "impl": "ruby-zjit",
+    "workers": 4,
+    "route": "raw",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 64,
+    "cpu_us_per_request": 10.78,
+    "peak_rss_kb": 91936,
+    "peak_pss_kb": 85700,
+    "rps": 369733,
+    "requests": 2969410,
+    "latency_ms": {
+      "50": 0.701,
+      "75": 0.719,
+      "90": 0.755,
+      "99": 1.21
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      370662,
+      359867,
+      369733
+    ]
+  },
+  {
+    "impl": "ruby-stock",
+    "workers": 4,
+    "route": "trim",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 62,
+    "cpu_us_per_request": 63.83,
+    "peak_rss_kb": 41876,
+    "peak_pss_kb": 35689,
+    "rps": 62420,
+    "requests": 501835,
+    "latency_ms": {
+      "50": 4.14,
+      "75": 4.41,
+      "90": 4.63,
+      "99": 5.05
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      62159,
+      62420,
+      63670
+    ]
+  },
+  {
+    "impl": "ruby-heap",
+    "workers": 4,
+    "route": "trim",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 62,
+    "cpu_us_per_request": 44.73,
+    "peak_rss_kb": 167136,
+    "peak_pss_kb": 160797,
+    "rps": 89077,
+    "requests": 716033,
+    "latency_ms": {
+      "50": 2.9,
+      "75": 3.15,
+      "90": 3.65,
+      "99": 4.51
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      89285,
+      88276,
+      89077
+    ]
+  },
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "route": "trim",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 62,
+    "cpu_us_per_request": 41.68,
+    "peak_rss_kb": 156860,
+    "peak_pss_kb": 150668,
+    "rps": 95522,
+    "requests": 767318,
+    "latency_ms": {
+      "50": 2.51,
+      "75": 2.95,
+      "90": 3.46,
+      "99": 4.3
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      95649,
+      95298,
+      95522
+    ]
+  },
+  {
+    "impl": "ruby-interp",
+    "workers": 4,
+    "route": "trim",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 64,
+    "cpu_us_per_request": 43.76,
+    "peak_rss_kb": 171996,
+    "peak_pss_kb": 165876,
+    "rps": 91143,
+    "requests": 732094,
+    "latency_ms": {
+      "50": 2.58,
+      "75": 3.04,
+      "90": 3.64,
+      "99": 4.31
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      91341,
+      90502,
+      91143
+    ]
+  },
+  {
+    "impl": "ruby-zjit",
+    "workers": 4,
+    "route": "trim",
+    "connections": 256,
+    "duration": 8,
+    "rate": null,
+    "boot_ms": 63,
+    "cpu_us_per_request": 42.39,
+    "peak_rss_kb": 175728,
+    "peak_pss_kb": 169600,
+    "rps": 94019,
+    "requests": 755180,
+    "latency_ms": {
+      "50": 2.63,
+      "75": 2.96,
+      "90": 3.65,
+      "99": 4.28
+    },
+    "socket_errors": null,
+    "non_2xx": 0,
+    "samples": [
+      94019,
+      94471,
+      93385
+    ]
+  }
+]

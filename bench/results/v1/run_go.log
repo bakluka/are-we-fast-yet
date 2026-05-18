@@ -1,0 +1,86 @@
+[12:10:53] == scaling
+[12:10:53] scaling raw go-std x1
+[12:11:23]   143370 rps [143951, 143370, 142816]
+[12:11:23] scaling raw go-std x2
+[12:11:54]   201017 rps [201017, 199719, 204806]
+[12:11:54] scaling raw go-std x4
+[12:12:24]   508369 rps [501164, 508426, 508369]
+[12:12:24] scaling raw go-std x8
+[12:12:55]   740778 rps [738096, 740778, 741596]
+[12:12:55] scaling raw go-jsontext x1
+[12:13:25]   144900 rps [144817, 144900, 144993]
+[12:13:25] scaling raw go-jsontext x2
+[12:13:56]   205457 rps [210437, 205457, 204693]
+[12:13:56] scaling raw go-jsontext x4
+[12:14:26]   508413 rps [506464, 508413, 509025]
+[12:14:26] scaling raw go-jsontext x8
+[12:14:57]   743698 rps [744971, 743698, 739715]
+[12:14:57] scaling trim go-std x1
+[12:15:27]   8113 rps [8113, 8122, 8083]
+[12:15:27] scaling trim go-std x2
+[12:15:58]   13272 rps [13272, 13337, 13232]
+[12:15:58] scaling trim go-std x4
+[12:16:29]   24729 rps [24729, 24660, 24786]
+[12:16:29] scaling trim go-std x8
+[12:16:59]   31018 rps [31150, 31018, 30865]
+[12:16:59] scaling trim go-jsontext x1
+[12:17:30]   31478 rps [31502, 31478, 31457]
+[12:17:30] scaling trim go-jsontext x2
+[12:18:00]   48382 rps [48125, 48382, 48793]
+[12:18:00] scaling trim go-jsontext x4
+[12:18:31]   91858 rps [91858, 92559, 91315]
+[12:18:31] scaling trim go-jsontext x8
+[12:19:01]   115138 rps [115279, 114166, 115138]
+[12:19:01] == concurrency
+[12:19:01] concurrency go-std x4 c=64
+[12:19:14]   1258 rps p99 50.92ms
+[12:19:14] concurrency go-std x1 c=64
+[12:19:27]   1252 rps p99 52.56ms
+[12:19:27] concurrency go-std x4 c=256
+[12:19:41]   5001 rps p99 51.56ms
+[12:19:41] concurrency go-std x1 c=256
+[12:19:54]   5019 rps p99 52.22ms
+[12:19:54] concurrency go-std x4 c=1024
+[12:20:07]   20026 rps p99 52.0ms
+[12:20:07] concurrency go-std x1 c=1024
+[12:20:20]   19945 rps p99 52.82ms
+[12:20:20] concurrency go-std x4 c=4096
+[12:20:34]   79488 rps p99 53.97ms
+[12:20:34] concurrency go-std x1 c=4096
+[12:20:47]   77246 rps p99 59.78ms
+[12:20:47] concurrency go-std x4 c=10000
+[12:21:00]   188612 rps p99 61.51ms
+[12:21:00] concurrency go-std x1 c=10000
+[12:21:14]   68145 rps p99 185.2ms
+[12:21:14] == latency
+[12:21:14] latency raw go-std @50000
+[12:21:46]   p50 0.86 p99 1.82 p99.9 2.06
+[12:21:46] latency raw go-jsontext @50000
+[12:22:18]   p50 0.86 p99 1.82 p99.9 2.04
+[12:22:18] latency raw go-std @100000
+[12:22:51]   p50 0.99 p99 2.0 p99.9 2.24
+[12:22:51] latency raw go-jsontext @100000
+[12:23:23]   p50 0.99 p99 2.01 p99.9 2.23
+[12:23:23] latency raw go-std @200000
+[12:23:56]   p50 1.22 p99 2.63 p99.9 3.05
+[12:23:56] latency raw go-jsontext @200000
+[12:24:28]   p50 1.21 p99 2.62 p99.9 3.05
+[12:24:28] latency trim go-std @10000
+[12:25:01]   p50 0.95 p99 1.97 p99.9 2.43
+[12:25:01] latency trim go-jsontext @10000
+[12:25:33]   p50 0.797 p99 1.85 p99.9 1.99
+[12:25:33] latency trim go-std @20000
+[12:26:06]   p50 1.24 p99 9.83 p99.9 36.51
+[12:26:06] latency trim go-jsontext @20000
+[12:26:38]   p50 0.86 p99 1.81 p99.9 2.02
+[12:26:38] latency trim go-std @40000
+[12:27:10]   p50 7520.0 p99 11550.0 p99.9 11980.0
+[12:27:10] latency trim go-jsontext @40000
+[12:27:43]   p50 0.89 p99 2.0 p99.9 2.59
+[12:27:43] == idle
+[12:27:43] idle go-std c=0
+[12:27:45]   pss 3305 kB
+[12:27:45] idle go-std c=1000
+[12:27:47]   pss 20241 kB
+[12:27:47] idle go-std c=10000
+[12:27:49]   pss 133057 kB

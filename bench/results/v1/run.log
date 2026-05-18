@@ -1,0 +1,267 @@
+[11:14:32] == scaling
+[11:14:32] scaling raw go-std x1
+[11:15:02]   144763 rps [144763, 144610, 145097]
+[11:15:02] scaling raw go-std x2
+[11:15:33]   178813 rps [182288, 178813, 176585]
+[11:15:33] scaling raw go-std x4
+[11:16:03]   509667 rps [509667, 510311, 507576]
+[11:16:03] scaling raw go-std x8
+[11:16:34]   748247 rps [748247, 752921, 745221]
+[11:16:34] scaling raw go-jsontext x1
+[11:17:04]   146397 rps [146690, 145832, 146397]
+[11:17:04] scaling raw go-jsontext x2
+[11:17:35]   179882 rps [177656, 179882, 185560]
+[11:17:35] scaling raw go-jsontext x4
+[11:18:05]   496601 rps [496601, 464836, 512504]
+[11:18:05] scaling raw go-jsontext x8
+[11:18:36]   743558 rps [749090, 739849, 743558]
+[11:18:36] scaling raw ruby-ractor x1
+[11:19:07]   90678 rps [90843, 90678, 90453]
+[11:19:07] scaling raw ruby-ractor x2
+[11:19:37]   181516 rps [181556, 181516, 180224]
+[11:19:37] scaling raw ruby-ractor x4
+[11:20:08]   356162 rps [358156, 352518, 356162]
+[11:20:08] scaling raw ruby-ractor x8
+[11:20:39]   507674 rps [507147, 507674, 508737]
+[11:20:39] scaling raw ruby-fork x1
+[11:21:10]   90481 rps [90104, 90817, 90481]
+[11:21:10] scaling raw ruby-fork x2
+[11:21:41]   182350 rps [182514, 181360, 182350]
+[11:21:41] scaling raw ruby-fork x4
+[11:22:11]   360139 rps [356937, 363055, 360139]
+[11:22:11] scaling raw ruby-fork x8
+[11:22:42]   510317 rps [510107, 511707, 510317]
+[11:22:42] scaling raw ruby-thread x1
+[11:23:13]   90385 rps [90797, 90385, 90225]
+[11:23:13] scaling raw ruby-thread x2
+[11:23:44]   99571 rps [98818, 100075, 99571]
+[11:23:44] scaling raw ruby-thread x4
+[11:24:14]   118207 rps [117579, 118207, 119609]
+[11:24:14] scaling raw ruby-thread x8
+[11:24:45]   111927 rps [111927, 111598, 111982]
+[11:24:45] scaling trim go-std x1
+[11:25:15]   8709 rps [8708, 8721, 8709]
+[11:25:15] scaling trim go-std x2
+[11:25:46]   14690 rps [14690, 14696, 14501]
+[11:25:46] scaling trim go-std x4
+[11:26:16]   27001 rps [27001, 27320, 26577]
+[11:26:16] scaling trim go-std x8
+[11:26:47]   34375 rps [34375, 34119, 34608]
+[11:26:47] scaling trim go-jsontext x1
+[11:27:18]   33448 rps [33448, 33490, 33318]
+[11:27:18] scaling trim go-jsontext x2
+[11:27:48]   53576 rps [53576, 54200, 53135]
+[11:27:48] scaling trim go-jsontext x4
+[11:28:19]   99614 rps [99614, 101195, 99223]
+[11:28:19] scaling trim go-jsontext x8
+[11:28:49]   130022 rps [130398, 130022, 128925]
+[11:28:49] scaling trim ruby-ractor x1
+[11:29:20]   24864 rps [24864, 24785, 25075]
+[11:29:20] scaling trim ruby-ractor x2
+[11:29:51]   49580 rps [50177, 49580, 48788]
+[11:29:51] scaling trim ruby-ractor x4
+[11:30:22]   94091 rps [94692, 94031, 94091]
+[11:30:22] scaling trim ruby-ractor x8
+[11:30:52]   105724 rps [105430, 106414, 105724]
+[11:30:52] scaling trim ruby-fork x1
+[11:31:23]   24914 rps [24971, 24662, 24914]
+[11:31:23] scaling trim ruby-fork x2
+[11:31:54]   48917 rps [49176, 47148, 48917]
+[11:31:54] scaling trim ruby-fork x4
+[11:32:25]   91429 rps [91429, 91610, 91166]
+[11:32:25] scaling trim ruby-fork x8
+[11:32:56]   106541 rps [106541, 107106, 105541]
+[11:32:56] scaling trim ruby-thread x1
+[11:33:27]   24992 rps [25137, 24992, 24826]
+[11:33:27] scaling trim ruby-thread x2
+[11:33:57]   23680 rps [23358, 23680, 23792]
+[11:33:57] scaling trim ruby-thread x4
+[11:34:28]   25529 rps [25513, 25529, 25529]
+[11:34:28] scaling trim ruby-thread x8
+[11:34:59]   24255 rps [24060, 24451, 24255]
+[11:34:59] == versions
+[11:34:59] versions raw ruby406-ractor x1
+[11:35:30]   80100 rps [81737, 79934, 80100]
+[11:35:30] versions raw ruby406-ractor x2
+[11:36:01]   136612 rps [138389, 136599, 136612]
+[11:36:01] versions raw ruby406-ractor x4
+[11:36:31]   215994 rps [214192, 221099, 215994]
+[11:36:31] versions raw ruby406-fork x1
+[11:37:02]   81540 rps [82508, 81322, 81540]
+[11:37:02] versions raw ruby406-fork x2
+[11:37:33]   170874 rps [163779, 170874, 172240]
+[11:37:33] versions raw ruby406-fork x4
+[11:38:04]   354265 rps [354265, 354568, 354265]
+[11:38:04] versions raw ruby-stock x1
+[11:38:35]   63359 rps [63359, 40637, 63678]
+[11:38:35] versions raw ruby-stock x2
+[11:39:05]   127482 rps [127482, 128952, 126297]
+[11:39:05] versions raw ruby-stock x4
+[11:39:36]   281297 rps [281297, 281297, 280504]
+[11:39:36] versions raw ruby-ractor x1
+[11:40:07]   90077 rps [89914, 90322, 90077]
+[11:40:07] versions raw ruby-ractor x2
+[11:40:38]   182088 rps [182088, 182745, 181698]
+[11:40:38] versions raw ruby-ractor x4
+[11:41:08]   367036 rps [367036, 365727, 367686]
+[11:41:08] versions trim ruby406-ractor x1
+[11:41:39]   21652 rps [21780, 21652, 21336]
+[11:41:39] versions trim ruby406-ractor x2
+[11:42:10]   36535 rps [36501, 36633, 36535]
+[11:42:10] versions trim ruby406-ractor x4
+[11:42:41]   60054 rps [58663, 60054, 60554]
+[11:42:41] versions trim ruby406-fork x1
+[11:43:12]   20998 rps [20998, 20876, 21904]
+[11:43:12] versions trim ruby406-fork x2
+[11:43:43]   44718 rps [44484, 44718, 44834]
+[11:43:43] versions trim ruby406-fork x4
+[11:44:14]   91737 rps [93543, 90604, 91737]
+[11:44:14] versions trim ruby-stock x1
+[11:44:44]   13800 rps [13880, 13800, 7413]
+[11:44:44] versions trim ruby-stock x2
+[11:45:15]   22513 rps [22513, 22453, 26097]
+[11:45:15] versions trim ruby-stock x4
+[11:45:46]   62733 rps [63231, 62253, 62733]
+[11:45:46] versions trim ruby-ractor x1
+[11:46:16]   25200 rps [25058, 25242, 25200]
+[11:46:16] versions trim ruby-ractor x2
+[11:46:47]   50448 rps [50415, 50448, 50479]
+[11:46:47] versions trim ruby-ractor x4
+[11:47:18]   95791 rps [94195, 95791, 95877]
+[11:47:18] == tuning
+[11:47:18] tuning raw ruby-stock
+[11:47:49]   268645 rps [264825, 268928, 268645]
+[11:47:49] tuning raw ruby-heap
+[11:48:19]   282422 rps [282422, 277949, 294465]
+[11:48:19] tuning raw ruby-ractor
+[11:48:50]   355723 rps [361177, 347904, 355723]
+[11:48:50] tuning raw ruby-interp
+[11:49:21]   345344 rps [345887, 344566, 345344]
+[11:49:21] tuning raw ruby-zjit
+[11:49:52]   369733 rps [370662, 359867, 369733]
+[11:49:52] tuning trim ruby-stock
+[11:50:23]   62420 rps [62159, 62420, 63670]
+[11:50:23] tuning trim ruby-heap
+[11:50:53]   89077 rps [89285, 88276, 89077]
+[11:50:53] tuning trim ruby-ractor
+[11:51:24]   95522 rps [95649, 95298, 95522]
+[11:51:24] tuning trim ruby-interp
+[11:51:55]   91143 rps [91341, 90502, 91143]
+[11:51:55] tuning trim ruby-zjit
+[11:52:26]   94019 rps [94019, 94471, 93385]
+[11:52:26] == concurrency
+[11:52:26] concurrency go-std x4 c=64
+[11:52:39]   1258 rps p99 50.89ms
+[11:52:39] concurrency ruby-ractor x4 c=64
+[11:52:52]   1253 rps p99 51.14ms
+[11:52:52] concurrency go-std x1 c=64
+[11:53:05]   1253 rps p99 51.39ms
+[11:53:05] concurrency ruby-ractor x1 c=64
+[11:53:19]   1246 rps p99 51.98ms
+[11:53:19] concurrency go-std x4 c=256
+[11:53:32]   4995 rps p99 51.36ms
+[11:53:32] concurrency ruby-ractor x4 c=256
+[11:53:45]   5020 rps p99 51.36ms
+[11:53:45] concurrency go-std x1 c=256
+[11:53:58]   5002 rps p99 52.16ms
+[11:53:58] concurrency ruby-ractor x1 c=256
+[11:54:11]   4998 rps p99 52.05ms
+[11:54:11] concurrency go-std x4 c=1024
+[11:54:25]   20056 rps p99 51.94ms
+[11:54:25] concurrency ruby-ractor x4 c=1024
+[11:54:38]   20054 rps p99 51.79ms
+[11:54:38] concurrency go-std x1 c=1024
+[11:54:51]   20015 rps p99 52.83ms
+[11:54:51] concurrency ruby-ractor x1 c=1024
+[11:55:04]   19932 rps p99 53.14ms
+[11:55:04] concurrency go-std x4 c=4096
+[11:55:18]   79579 rps p99 53.69ms
+[11:55:18] concurrency ruby-ractor x4 c=4096
+[11:55:31]   79338 rps p99 55.92ms
+[11:55:31] concurrency go-std x1 c=4096
+[11:55:45]   77758 rps p99 62.59ms
+[11:55:45] concurrency ruby-ractor x1 c=4096
+[11:55:58]   42598 rps p99 113.94ms
+[11:55:58] concurrency go-std x4 c=10000
+[11:56:12]   190012 rps p99 60.36ms
+[11:56:12] concurrency ruby-ractor x4 c=10000
+[11:56:25]   142905 rps p99 122.0ms
+[11:56:25] concurrency go-std x1 c=10000
+[11:56:39]   70191 rps p99 173.66ms
+[11:56:39] concurrency ruby-ractor x1 c=10000
+[11:56:52]   34575 rps p99 1210.0ms
+[11:56:52] == latency
+[11:56:52] latency raw go-std @50000
+[11:57:25]   p50 0.86 p99 1.82 p99.9 2.08
+[11:57:25] latency raw go-jsontext @50000
+[11:57:57]   p50 0.86 p99 1.84 p99.9 2.12
+[11:57:57] latency raw ruby-ractor @50000
+[11:58:30]   p50 0.849 p99 1.88 p99.9 2.62
+[11:58:30] latency raw ruby-fork @50000
+[11:59:02]   p50 0.847 p99 1.86 p99.9 2.27
+[11:59:02] latency raw go-std @100000
+[11:59:35]   p50 0.99 p99 1.99 p99.9 2.2
+[11:59:35] latency raw go-jsontext @100000
+[12:00:07]   p50 0.99 p99 1.99 p99.9 2.19
+[12:00:07] latency raw ruby-ractor @100000
+[12:00:40]   p50 0.95 p99 1.95 p99.9 2.31
+[12:00:40] latency raw ruby-fork @100000
+[12:01:13]   p50 0.94 p99 1.95 p99.9 2.45
+[12:01:13] latency raw go-std @200000
+[12:01:45]   p50 1.22 p99 2.6 p99.9 3.09
+[12:01:45] latency raw go-jsontext @200000
+[12:02:18]   p50 1.21 p99 2.58 p99.9 2.98
+[12:02:18] latency raw ruby-ractor @200000
+[12:02:50]   p50 1.25 p99 17.04 p99.9 34.78
+[12:02:50] latency raw ruby-fork @200000
+[12:03:22]   p50 1.23 p99 29.22 p99.9 57.69
+[12:03:22] latency trim go-std @10000
+[12:03:54]   p50 0.93 p99 1.92 p99.9 2.24
+[12:03:54] latency trim go-jsontext @10000
+[12:04:27]   p50 0.789 p99 1.85 p99.9 2.0
+[12:04:27] latency trim ruby-ractor @10000
+[12:04:59]   p50 0.777 p99 1.7 p99.9 1.97
+[12:04:59] latency trim ruby-fork @10000
+[12:05:32]   p50 0.795 p99 1.78 p99.9 2.61
+[12:05:32] latency trim go-std @20000
+[12:06:04]   p50 1.11 p99 2.72 p99.9 4.44
+[12:06:04] latency trim go-jsontext @20000
+[12:06:37]   p50 0.87 p99 1.77 p99.9 1.97
+[12:06:37] latency trim ruby-ractor @20000
+[12:07:09]   p50 0.783 p99 1.75 p99.9 2.06
+[12:07:09] latency trim ruby-fork @20000
+[12:07:42]   p50 0.796 p99 1.84 p99.9 2.97
+[12:07:42] latency trim go-std @40000
+[12:08:14]   p50 5800.0 p99 8940.0 p99.9 9380.0
+[12:08:14] latency trim go-jsontext @40000
+[12:08:47]   p50 0.841 p99 1.89 p99.9 2.33
+[12:08:47] latency trim ruby-ractor @40000
+[12:09:19]   p50 0.93 p99 2.08 p99.9 2.7
+[12:09:19] latency trim ruby-fork @40000
+[12:09:51]   p50 0.94 p99 2.6 p99.9 4.07
+[12:09:51] == idle
+[12:09:51] idle go-std c=0
+[12:09:53]   pss 3301 kB
+[12:09:53] idle ruby-ractor c=0
+[12:09:55]   pss 18552 kB
+[12:09:55] idle ruby-fork c=0
+[12:09:58]   pss 23180 kB
+[12:09:58] idle ruby-thread c=0
+[12:10:00]   pss 16990 kB
+[12:10:00] idle go-std c=1000
+[12:10:02]   pss 20537 kB
+[12:10:02] idle ruby-ractor c=1000
+[12:10:04]   pss 51160 kB
+[12:10:04] idle ruby-fork c=1000
+[12:10:06]   pss 60609 kB
+[12:10:06] idle ruby-thread c=1000
+[12:10:08]   pss 47260 kB
+[12:10:08] idle go-std c=10000
+[12:10:11]   pss 162761 kB
+[12:10:11] idle ruby-ractor c=10000
+[12:10:13]   pss 318742 kB
+[12:10:13] idle ruby-fork c=10000
+[12:10:16]   pss 349304 kB
+[12:10:16] idle ruby-thread c=10000
+[12:10:19]   pss 300512 kB
+[12:10:19] == loc

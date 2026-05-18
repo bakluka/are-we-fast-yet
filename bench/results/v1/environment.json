@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-03T10:10:53Z",
+  "cpu": "AMD Ryzen 7 9800X3D 8-Core Processor",
+  "kernel": "7.0.0-34-generic",
+  "rubies": {
+    "master": "ruby 4.1.0dev (2026-10-03T08:20:45Z master 9b8b0ae443) +PRISM [x86_64-linux]",
+    "4.0.6": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [x86_64-linux]"
+  },
+  "go": "go version go1.25.5 linux/amd64",
+  "cores": {
+    "1": "0",
+    "2": "0-1",
+    "4": "0-3",
+    "8": "0-3,8-11"
+  },
+  "upstream_cpus": "4,5,12,13",
+  "wrk_cpus": "6,7,14,15"
+}

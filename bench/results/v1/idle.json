@@ -1,0 +1,110 @@
+[
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 24768,
+    "pss_kb_before": 18552,
+    "rss_kb": 24768,
+    "pss_kb": 18552
+  },
+  {
+    "impl": "ruby-fork",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 96200,
+    "pss_kb_before": 23180,
+    "rss_kb": 96200,
+    "pss_kb": 23180
+  },
+  {
+    "impl": "ruby-thread",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 23268,
+    "pss_kb_before": 16990,
+    "rss_kb": 23268,
+    "pss_kb": 16990
+  },
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 24776,
+    "pss_kb_before": 18520,
+    "rss_kb": 57416,
+    "pss_kb": 51160
+  },
+  {
+    "impl": "ruby-fork",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 95388,
+    "pss_kb_before": 23179,
+    "rss_kb": 135240,
+    "pss_kb": 60609
+  },
+  {
+    "impl": "ruby-thread",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 23328,
+    "pss_kb_before": 17116,
+    "rss_kb": 53504,
+    "pss_kb": 47260
+  },
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 24784,
+    "pss_kb_before": 18582,
+    "rss_kb": 324944,
+    "pss_kb": 318742
+  },
+  {
+    "impl": "ruby-fork",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 96320,
+    "pss_kb_before": 23233,
+    "rss_kb": 391064,
+    "pss_kb": 349304
+  },
+  {
+    "impl": "ruby-thread",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 23360,
+    "pss_kb_before": 17148,
+    "rss_kb": 306756,
+    "pss_kb": 300512
+  },
+  {
+    "impl": "go-std",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 5196,
+    "pss_kb_before": 3305,
+    "rss_kb": 5196,
+    "pss_kb": 3305
+  },
+  {
+    "impl": "go-std",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 5196,
+    "pss_kb_before": 3305,
+    "rss_kb": 22132,
+    "pss_kb": 20241
+  },
+  {
+    "impl": "go-std",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 5196,
+    "pss_kb_before": 3305,
+    "rss_kb": 134948,
+    "pss_kb": 133057
+  }
+]
