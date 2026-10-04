@@ -1,0 +1,43 @@
+[11:55:13] == tuning
+[11:55:13] tuning raw ruby-stock
+[11:55:45]   147009 rps [147009, 148116, 145984]
+[11:55:45] tuning raw ruby-heap
+[11:56:16]   201873 rps [200725, 202965, 201873]
+[11:56:16] tuning raw ruby-leaky
+[11:56:48]   233599 rps [233599, 238259, 233230]
+[11:56:48] tuning api ruby-stock
+[11:57:19]   16986 rps [16986, 16737, 17043]
+[11:57:19] tuning api ruby-heap
+[11:57:51]   34008 rps [34148, 34008, 33636]
+[11:57:51] tuning api ruby-leaky
+[11:58:22]   34839 rps [34745, 35030, 34839]
+[11:58:22] tuning hit ruby-stock
+[11:58:54]   314583 rps [315907, 314583, 309318]
+[11:58:54] tuning hit ruby-heap
+[11:59:25]   418012 rps [417584, 418012, 421166]
+[11:59:25] tuning hit ruby-leaky
+[11:59:57]   537629 rps [537629, 539885, 536696]
+[11:59:57] == versions
+[11:59:57] versions raw ruby-stock x1
+[12:00:28]   32732 rps [32732, 32679, 32856]
+[12:00:28] versions raw ruby-stock x4
+[12:00:59]   152439 rps [152439, 152296, 153972]
+[12:00:59] versions api ruby-stock x1
+[12:01:31]   4524 rps [4504, 4891, 4524]
+[12:01:31] versions api ruby-stock x4
+[12:02:02]   17118 rps [17015, 17186, 17118]
+[12:02:02] versions hit ruby-stock x1
+[12:02:33]   74700 rps [75500, 71643, 74700]
+[12:02:33] versions hit ruby-stock x4
+[12:03:05]   315690 rps [315690, 312436, 316341]
+[12:03:05] == concurrency
+[12:03:05] concurrency ruby-leaky x4 c=64
+[12:03:18]   1262 rps p99 51.47ms
+[12:03:18] concurrency ruby-leaky x4 c=256
+[12:03:32]   5001 rps p99 51.7ms
+[12:03:32] concurrency ruby-leaky x4 c=1024
+[12:03:45]   20031 rps p99 52.39ms
+[12:03:45] concurrency ruby-leaky x4 c=4096
+[12:03:59]   76737 rps p99 63.75ms
+[12:03:59] concurrency ruby-leaky x4 c=10000
+[12:04:13]   91209 rps p99 130.74ms

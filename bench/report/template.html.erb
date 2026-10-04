@@ -1,0 +1,1317 @@
+<%-
+  raw4 = { ruby: rps("scaling", "ruby-ractor", 4, "raw"), go: rps("scaling", "go-std", 4, "raw"), fork: rps("scaling", "ruby-fork", 4, "raw") }
+  api4 = { ruby: rps("scaling", "ruby-ractor", 4, "api"), go: rps("scaling", "go-std", 4, "api"), jt: rps("scaling", "go-jsontext", 4, "api"), fork: rps("scaling", "ruby-fork", 4, "api") }
+  hit4 = { ruby: rps("scaling", "ruby-ractor", 4, "hit"), go: rps("scaling", "go-std", 4, "hit"), fork: rps("scaling", "ruby-fork", 4, "hit") }
+  raw8 = { ruby: rps("scaling", "ruby-ractor", 8, "raw"), go: rps("scaling", "go-std", 8, "raw") }
+  share = RESULTS.fetch("sharing").to_h { [it[:impl], it] }
+  limit = share.transform_values { it[:rate_limit][:allowed] }
+  fetches = share.transform_values { it[:cache][:upstream_fetches] }
+  profile = RESULTS.fetch("profile").to_h { [[it[:version], it[:route]], it[:shares]] }
+  ruby_share = ->(version, route) { (profile[[version, route]].values_at(:"gateway Ruby code", :"Ruby core methods").compact.sum).round }
+  v1 = { raw4: rps_v1("scaling", "ruby-ractor", 4, "raw"), trim4: rps_v1("scaling", "ruby-ractor", 4, "trim") }
+-%>
+<title>Are We Fast Yet?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&display=swap">
+<style>
+/* Layout: a lab notebook. One 66ch reading column; the scoreboard, figures and terminal evidence break out to a 1080px measure. */
+:root {
+  --bg: #f3f4f6;
+  --surface: #fbfbfc;
+  --ink: #14161b;
+  --ink-2: #474c57;
+  --muted: #6f7581;
+  --rule: #dcdfe4;
+  --ruby: #b81f2b;
+  --go: #1d5fae;
+  --s-ruby: #e34948;
+  --s-ruby-soft: rgba(227, 73, 72, 0.42);
+  --s-go: #2a78d6;
+  --s-go-soft: rgba(42, 120, 214, 0.42);
+  --s-grey: #a3a8b1;
+  --grid: #e5e7eb;
+  --axis: #c3c7ce;
+  --code-bg: #eceef2;
+  --code-ink: #23262d;
+  --good: #0a7a33;
+  --chip: #e6e8ec;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --measure: 66ch;
+  --wide: 1080px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1014; --surface: #151820; --ink: #e8eaee; --ink-2: #b2b8c3; --muted: #8b929e; --rule: #272b33;
+    --ruby: #ff6f6f; --go: #79b0f2; --s-ruby: #e66767; --s-ruby-soft: rgba(230, 103, 103, 0.45); --s-go: #3987e5; --s-go-soft: rgba(57, 135, 229, 0.45);
+    --s-grey: #6d737d; --grid: #22262e; --axis: #3b404a; --code-bg: #181b22; --code-ink: #d9dde4; --good: #37c26a; --chip: #20242c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1014; --surface: #151820; --ink: #e8eaee; --ink-2: #b2b8c3; --muted: #8b929e; --rule: #272b33;
+  --ruby: #ff6f6f; --go: #79b0f2; --s-ruby: #e66767; --s-ruby-soft: rgba(230, 103, 103, 0.45); --s-go: #3987e5; --s-go-soft: rgba(57, 135, 229, 0.45);
+  --s-grey: #6d737d; --grid: #22262e; --axis: #3b404a; --code-bg: #181b22; --code-ink: #d9dde4; --good: #37c26a; --chip: #20242c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.62; font-optical-sizing: auto; }
+.page { padding-inline: clamp(16px, 4vw, 40px); padding-block: 40px 96px; }
+.col, .wide { margin-inline: auto; width: 100%; }
+.col { max-width: var(--measure); }
+.wide { max-width: var(--wide); }
+a { color: var(--ruby); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--ruby); outline-offset: 3px; border-radius: 3px; }
+p { margin: 0 0 1em; }
+strong { font-weight: 650; }
+code { font-variant-ligatures: none; font-family: var(--mono); font-size: 0.84em; background: var(--code-bg); padding: 0.08em 0.32em; border-radius: 4px; color: var(--code-ink); overflow-wrap: anywhere; }
+h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(28px, 4.2vw, 40px); font-variation-settings: "wdth" 116; font-weight: 780; letter-spacing: -0.01em; line-height: 1.08; }
+h3 { font-size: 21px; font-variation-settings: "wdth" 108; font-weight: 700; line-height: 1.2; }
+.eyebrow { font-family: var(--display); font-size: 12.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); font-weight: 600; font-variation-settings: "wdth" 104; }
+.mono { font-family: var(--mono); }
+section { margin-top: 88px; display: grid; gap: 24px; }
+section > .col > p:last-child { margin-bottom: 0; }
+
+/* hero */
+.hero { display: grid; gap: 28px; padding-top: 24px; }
+.hero h1 { font-size: clamp(54px, 11.5vw, 132px); line-height: 0.9; font-style: italic; font-weight: 860; font-variation-settings: "wdth" 125; letter-spacing: -0.035em; }
+.hero h1 .q { color: var(--ruby); }
+.hero .sub { font-family: var(--display); font-size: clamp(20px, 2.6vw, 28px); font-variation-settings: "wdth" 100; font-weight: 450; color: var(--ink-2); line-height: 1.25; margin: 0; }
+.meta { font-family: var(--mono); font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.lede { font-size: 21px; line-height: 1.55; }
+.lede p { margin: 0 0 0.8em; }
+
+/* scoreboard */
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.duel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 18px 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.duel h4 { font-size: 15px; font-weight: 650; font-variation-settings: "wdth" 104; color: var(--ink); }
+.duel .bars { display: grid; gap: 8px; }
+.duel .bar { display: grid; grid-template-columns: 88px 1fr; align-items: center; gap: 10px; font-family: var(--display); font-size: 13px; color: var(--ink-2); }
+.duel .track { position: relative; height: 22px; }
+.duel .fill { position: absolute; inset: 3px auto 3px 0; border-radius: 0 4px 4px 0; min-width: 2px; }
+.duel .val { position: absolute; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 12.5px; color: var(--ink); white-space: nowrap; padding-left: 6px; }
+.duel .verdict { font-family: var(--display); font-size: 14px; color: var(--ink-2); line-height: 1.35; border-top: 1px solid var(--rule); padding-top: 10px; }
+.duel .verdict b { color: var(--ink); font-weight: 700; }
+.c-ruby { background: var(--s-ruby); }
+.c-ruby-soft { background: var(--s-ruby-soft); }
+.c-go { background: var(--s-go); }
+.c-go-soft { background: var(--s-go-soft); }
+.c-grey { background: var(--s-grey); }
+.toc { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--display); font-size: 15px; font-variation-settings: "wdth" 104; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding-block: 12px; }
+.toc a { color: var(--ink-2); text-decoration: none; }
+.toc a:hover { color: var(--ruby); }
+
+/* figures */
+figure { position: relative; margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 22px clamp(14px, 2.4vw, 26px) 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+figure .cap { font-size: 16px; color: var(--ink-2); line-height: 1.45; margin: 0; max-width: 72ch; }
+figure .tools { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: var(--display); font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.key.dash { border-top-style: dashed; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+button.tbl { font-family: var(--display); font-size: 12.5px; letter-spacing: 0.04em; color: var(--ink-2); background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+button.tbl:hover { border-color: var(--ink-2); color: var(--ink); }
+.plot { position: relative; width: 100%; min-width: 0; }
+.plot svg { display: block; width: 100%; overflow: visible; }
+.plot svg text { font-family: var(--display); font-size: 12px; fill: var(--muted); }
+.plot svg .lab { fill: var(--ink-2); font-size: 12.5px; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; font-family: var(--display); font-size: 12.5px; color: var(--ink-2); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); min-width: 150px; z-index: 5; }
+.tip .t { font-weight: 650; color: var(--ink); margin-bottom: 4px; }
+.tip .row { display: grid; grid-template-columns: 16px auto 1fr; gap: 8px; align-items: center; }
+.tip .row b { font-family: var(--mono); font-weight: 600; color: var(--ink); justify-self: end; }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-family: var(--display); font-size: 13.5px; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+td.num, .num { font-family: var(--mono); font-size: 12.5px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.hbars { display: grid; gap: 7px; }
+.hbar { display: grid; grid-template-columns: minmax(118px, 34%) 1fr; gap: 12px; align-items: center; font-family: var(--display); font-size: 13.5px; color: var(--ink-2); }
+.hbar .lbl { line-height: 1.25; }
+.hbar .track { position: relative; height: 24px; cursor: default; }
+.hbar .seg { position: absolute; top: 3px; bottom: 3px; }
+.hbar .seg.end { border-radius: 0 4px 4px 0; }
+.hbar .v { position: absolute; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 12.5px; color: var(--ink); white-space: nowrap; padding-left: 7px; }
+.hbar.group-head { font-weight: 650; color: var(--ink); margin-top: 8px; grid-template-columns: 1fr; }
+.hbar .track:hover .seg { filter: brightness(1.08); }
+
+/* the log */
+.log { display: grid; gap: 54px; counter-reset: entry; }
+.entry { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 0 22px; }
+.entry .no { font-family: var(--mono); font-size: 30px; font-weight: 600; color: var(--muted); line-height: 1.1; padding-top: 2px; }
+.entry .body { display: grid; gap: 12px; min-width: 0; }
+.entry h3 { font-size: 23px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--display); font-size: 12px; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 999px; background: var(--chip); color: var(--ink-2); font-weight: 600; }
+.chip.win { color: var(--good); }
+.chip.ruby { color: var(--ruby); }
+.entry p { margin: 0; }
+.term { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; font-family: var(--mono); font-variant-ligatures: none; font-size: 12.8px; line-height: 1.6; overflow-x: auto; white-space: pre; margin-block: 0; tab-size: 2; }
+.term .c { color: var(--muted); }
+.term .hl { color: var(--ruby); font-weight: 600; }
+.term .ok { color: var(--good); font-weight: 600; }
+.fix { border-left: 3px solid var(--good); padding: 2px 0 2px 14px; font-size: 17px; }
+.fix b { font-family: var(--display); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--good); margin-right: 6px; }
+
+/* code */
+.code-wrap { background: var(--code-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--rule); }
+.code-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--rule); font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.code-wrap pre { margin: 0; padding: 16px 0; overflow-x: auto; font-family: var(--mono); font-variant-ligatures: none; font-size: 13px; line-height: 1.58; color: var(--code-ink); counter-reset: ln; }
+.code-wrap pre code { background: none; padding: 0; font-size: inherit; display: block; overflow-wrap: normal; }
+.code-wrap .ln { display: block; padding: 0 18px 0 0; white-space: pre; }
+.code-wrap .ln::before { counter-increment: ln; content: counter(ln); display: inline-block; width: 3.4em; padding-right: 1.2em; text-align: right; color: var(--muted); opacity: 0.6; user-select: none; }
+.code-wrap .ln.mark { background: color-mix(in srgb, var(--ruby) 9%, transparent); box-shadow: inset 3px 0 0 var(--ruby); }
+.hljs-keyword, .hljs-built_in, .hljs-literal { color: var(--ruby); }
+.hljs-string, .hljs-regexp { color: var(--go); }
+.hljs-comment, .hljs-meta { color: var(--muted); font-style: italic; }
+.hljs-symbol, .hljs-number, .hljs-variable, .hljs-attr { color: var(--good); }
+.hljs-title, .hljs-type { color: var(--ink); font-weight: 600; }
+.notes { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.notes li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; font-size: 16.5px; line-height: 1.5; }
+.notes li .at { font-family: var(--mono); font-size: 12.5px; color: var(--ruby); padding-top: 3px; }
+
+/* misc */
+.cpu-map { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; font-family: var(--mono); font-size: 11.5px; }
+.cpu-map div { border-radius: 6px; padding: 8px 6px; text-align: center; border: 1px solid var(--rule); color: var(--ink-2); background: var(--surface); line-height: 1.3; }
+.cpu-map .p { background: color-mix(in srgb, var(--s-ruby) 18%, var(--surface)); border-color: color-mix(in srgb, var(--s-ruby) 45%, var(--rule)); color: var(--ink); }
+.cpu-map .p8 { background: color-mix(in srgb, var(--s-ruby) 8%, var(--surface)); border-style: dashed; }
+.cpu-map .u { background: color-mix(in srgb, var(--s-grey) 22%, var(--surface)); }
+.cpu-map .w { background: color-mix(in srgb, var(--s-go) 14%, var(--surface)); }
+.cpu-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--display); font-size: 13px; color: var(--ink-2); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 18px 36px; }
+.two h3 { margin-bottom: 10px; }
+.list { margin: 0 0 1em; padding-left: 1.1em; display: grid; gap: 10px; font-size: 17px; }
+.list li::marker { color: var(--muted); }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; }
+.stat .k { font-family: var(--display); font-size: 12.5px; color: var(--muted); }
+.stat .v { font-family: var(--display); font-size: 30px; font-weight: 720; font-variation-settings: "wdth" 110; line-height: 1.1; }
+.stat .d { font-family: var(--display); font-size: 13px; color: var(--ink-2); }
+.diagram { overflow-x: auto; }
+.diagram svg { min-width: 680px; width: 100%; height: auto; display: block; }
+.diagram text { font-family: var(--display); }
+footer { margin-top: 96px; font-family: var(--display); font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 18px; }
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+  .entry { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .entry .no { font-size: 22px; }
+  .lede { font-size: 19px; }
+  .hbar { grid-template-columns: minmax(96px, 38%) 1fr; font-size: 12.5px; }
+  .cpu-map { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .duel .fill, .hbar .seg { transition: filter 0.15s ease; }
+}
+
+/* code tabs */
+.tabs { display: flex; flex-wrap: wrap; gap: 0 2px; padding: 6px 10px 0; border-bottom: 1px solid var(--rule); background: var(--code-bg); }
+.tabs button { font-family: var(--mono); font-size: 12px; color: var(--muted); background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 7px 9px 8px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ruby); }
+.tabs button:hover { color: var(--ink); }
+.proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.proof figure h3 { font-size: 18px; }
+.big { font-family: var(--display); font-size: 15px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.big b { font-size: 26px; font-weight: 720; font-variation-settings: "wdth" 110; color: var(--ink); }
+</style>
+<div class="page">
+<header class="hero wide">
+  <div class="eyebrow">Talk demo &middot; lab notebook</div>
+  <h1>Are We Fast Yet<span class="q">?</span></h1>
+  <p class="sub">Ractors, Fibers, and how far can we stretch it.</p>
+  <div class="meta"><span>ruby 4.1.0dev master 9b8b0ae443</span><span>go1.25.5</span><span>Ryzen 7 9800X3D, 8 cores, 16 threads</span><span>3 October 2026</span></div>
+</header>
+
+<div class="col lede" style="margin-top: 28px">
+  <p>I built the same small API gateway twice, once in Ruby on master and once in Go, and pushed both with wrk on the same four cores. The first version of this page was too kind to Ruby: almost all of its time went into C, sockets and the kernel. This version makes Ruby do the work. It parses HTTP into objects, rewrites headers, runs a chain of middleware and reshapes JSON in Ruby, and it shares a rate limiter, a response cache and its metrics between Ractors with no IPC, no Redis and no files.</p>
+  <p>Go is still <%= times(raw4[:go], raw4[:ruby]) %> faster at plain proxying. On the JSON route Ruby beats Go's standard library and loses to a hand-written Go filter. What changed is that one Ruby process now does what used to take a pool of forks plus Redis: every Ractor sees the same counters, the same cache and the same limits, and they run in parallel.</p>
+</div>
+
+<div class="wide board" style="margin-top: 30px" aria-label="Headline results">
+  <%- duel = ->(rows) { top = rows.map(&:last).max; rows.map { |label, cls, value| [label, cls, value, (value * 78.0 / top).round(1)] } } -%>
+  <%- [
+        ["Plain proxying, 4 cores", duel.([["Go", "c-go", raw4[:go]], ["Ruby", "c-ruby", raw4[:ruby]]]), "<b>Go is #{times(raw4[:go], raw4[:ruby])} faster.</b> Requests per second through header rewriting and keep-alive on both legs."],
+        ["API rewrite, 4 cores", duel.([["Ruby", "c-ruby", api4[:ruby]], ["Go jsontext", "c-go-soft", api4[:jt]], ["Go stdlib", "c-go", api4[:go]]]), "<b>#{api4[:ruby] > api4[:go] ? "Ruby is #{times(api4[:ruby], api4[:go])} faster than encoding/json" : "Go's encoding/json is #{times(api4[:go], api4[:ruby])} faster"}.</b> #{lead("A hand-written Go filter", api4[:jt], "Ruby", api4[:ruby]).sub(" is ", " runs ")}."],
+        ["Rate limit of 1,000/s, over 10 s", duel.([["Ractors", "c-ruby", limit["ruby-ractor"]], ["4 forks", "c-ruby-soft", limit["ruby-fork"]], ["Go", "c-go", limit["go-std"]]]), "<b>Forks let through #{times(limit["ruby-fork"], limit["ruby-ractor"])} the limit.</b> Each process counts on its own; Ractors share one counter."],
+        ["Cache of 1,000 URLs, over 10 s", duel.([["Ractors", "c-ruby", fetches["ruby-ractor"]], ["4 forks", "c-ruby-soft", fetches["ruby-fork"]], ["Go", "c-go", fetches["go-std"]]]), "<b>Forks hit the backend #{times(fetches["ruby-fork"], fetches["ruby-ractor"])} as often.</b> Upstream fetches with a 1-second TTL; Ractors share one cache."],
+      ].each do |title, rows, verdict| -%>
+  <article class="duel">
+    <h4><%= title %></h4>
+    <div class="bars">
+      <%- rows.each do |label, cls, value, width| -%>
+      <div class="bar"><span><%= label %></span><div class="track"><div class="fill <%= cls %>" style="width: <%= width %>%"></div><span class="val" style="left: <%= width %>%"><%= value >= 100_000 ? kilo(value) : num(value) %></span></div></div>
+      <%- end -%>
+    </div>
+    <p class="verdict"><%= verdict %></p>
+  </article>
+  <%- end -%>
+</div>
+
+<nav class="wide toc" style="margin-top: 34px" aria-label="Sections">
+  <a href="#demo">The demo</a><a href="#sharing">Shared state</a><a href="#profile">Where the time goes</a><a href="#log">The log</a><a href="#scaling">Scaling</a><a href="#tuning">Tuning</a><a href="#concurrency">10,000 connections</a><a href="#latency">Latency</a><a href="#memory">Memory</a><a href="#json">JSON</a><a href="#verdict">The cool and the ugly</a><a href="#next">What next</a><a href="#reproduce">Reproduce</a>
+</nav>
+
+<section id="demo">
+  <div class="col">
+    <div class="eyebrow">The demo</div>
+    <h2>An API gateway with six jobs</h2>
+  </div>
+  <div class="col">
+    <p>Everyone in the room knows what a gateway does, and each of these jobs either keeps Ruby busy or needs state that every worker can see.</p>
+    <ul class="list">
+      <li><strong>Route by prefix</strong> to pools of upstream servers: <code>/api</code> to ports 9001 and 9002, <code>/static</code> and everything else to 9003 and 9004.</li>
+      <li><strong>Balance by least outstanding requests</strong>, counted across every worker.</li>
+      <li><strong>Rate limit per API key</strong>, with one count per key per second shared by every worker.</li>
+      <li><strong>Cache</strong> <code>/static</code> responses for a second, in one cache shared by every worker.</li>
+      <li><strong>Rewrite JSON</strong>: keep the fields the client asks for, camelCase every key, mask email addresses.</li>
+      <li><strong>Report metrics</strong> for the whole process at <code>/metrics</code>, in Prometheus format.</li>
+    </ul>
+    <p>All of it is plain Ruby objects. Requests and responses are <code>Data</code> values, every feature is a layer with <code>call(request) { ... }</code> in the spirit of Rack, and the layers are frozen. That makes the whole routes table shareable with one magic comment, rate-limit windows, cache entries and metric counters included, and every Ractor gets the same table. Only sockets and upstream pools belong to a single Ractor.</p>
+  </div>
+
+  <figure class="wide">
+    <div class="diagram" role="img" aria-label="Architecture: wrk connects through SO_REUSEPORT to four Ractors. Each Ractor has its own listener, an async reactor with one fiber per connection and its own upstream pools. Below them, one shared routes table holds the rate-limit windows, the cache entries, the metric counters and the in-flight counters, used by every Ractor without copies or IPC.">
+      <svg viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+        </defs>
+        <g font-size="13" fill="var(--ink-2)">
+          <rect x="10" y="118" width="120" height="78" rx="10" fill="var(--bg)" stroke="var(--rule)"/>
+          <text x="70" y="150" text-anchor="middle" font-weight="700" fill="var(--ink)">wrk</text>
+          <text x="70" y="170" text-anchor="middle">keep-alive</text>
+          <text x="70" y="186" text-anchor="middle">connections</text>
+          <line x1="132" y1="157" x2="170" y2="157" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="172" y="100" width="132" height="114" rx="10" fill="var(--bg)" stroke="var(--rule)"/>
+          <text x="238" y="134" text-anchor="middle" font-weight="700" fill="var(--ink)">kernel</text>
+          <text x="238" y="156" text-anchor="middle">SO_REUSEPORT</text>
+          <text x="238" y="174" text-anchor="middle">spreads new</text>
+          <text x="238" y="190" text-anchor="middle">connections</text>
+          <%- 4.times do |i| y = 14 + i * 70 -%>
+          <line x1="306" y1="157" x2="342" y2="<%= y + 28 %>" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#arr)"/>
+          <rect x="344" y="<%= y %>" width="330" height="56" rx="10" fill="color-mix(in srgb, var(--s-ruby) 9%, var(--surface))" stroke="color-mix(in srgb, var(--s-ruby) 40%, var(--rule))"/>
+          <text x="360" y="<%= y + 24 %>" font-weight="700" fill="var(--ink)">Ractor <%= i %></text>
+          <text x="360" y="<%= y + 42 %>">own listener</text>
+          <text x="470" y="<%= y + 24 %>">async reactor, 1 fiber per conn</text>
+          <text x="470" y="<%= y + 42 %>">own upstream pools</text>
+          <%- end -%>
+          <rect x="300" y="310" width="418" height="118" rx="12" fill="var(--bg)" stroke="var(--s-ruby)" stroke-width="1.5"/>
+          <text x="509" y="336" text-anchor="middle" font-weight="700" fill="var(--ink)">Shared by every Ractor, one copy, no IPC</text>
+          <text x="320" y="362">ROUTES, deeply frozen</text>
+          <text x="320" y="382">RateLimit windows</text>
+          <text x="320" y="402">Cache entries</text>
+          <text x="520" y="362">Metrics counters</text>
+          <text x="520" y="382">in-flight per upstream</text>
+          <text x="520" y="402">Ratomic::Map and Counter</text>
+          <%- 4.times do |i| y = 14 + i * 70 -%>
+          <line x1="<%= 352 + i * 6 %>" y1="<%= y + 56 %>" x2="<%= 352 + i * 6 %>" y2="308" stroke="var(--s-ruby)" stroke-width="1" stroke-opacity="0.35"/>
+          <%- end -%>
+          <line x1="676" y1="90" x2="776" y2="62" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="676" y1="170" x2="776" y2="222" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="726" y="134" text-anchor="middle" font-size="12">least</text>
+          <text x="726" y="150" text-anchor="middle" font-size="12">outstanding</text>
+          <rect x="778" y="16" width="212" height="96" rx="10" fill="color-mix(in srgb, var(--s-go) 8%, var(--surface))" stroke="var(--rule)"/>
+          <text x="884" y="46" text-anchor="middle" font-weight="700" fill="var(--ink)">/api upstreams</text>
+          <text x="884" y="68" text-anchor="middle">:9001  :9002</text>
+          <text x="884" y="88" text-anchor="middle">12 KB JSON list</text>
+          <rect x="778" y="176" width="212" height="96" rx="10" fill="color-mix(in srgb, var(--s-go) 8%, var(--surface))" stroke="var(--rule)"/>
+          <text x="884" y="206" text-anchor="middle" font-weight="700" fill="var(--ink)">/static and /</text>
+          <text x="884" y="228" text-anchor="middle">:9003  :9004</text>
+          <text x="884" y="248" text-anchor="middle">1 KB body, optional delay</text>
+        </g>
+      </svg>
+    </div>
+    <p class="cap">Each Ractor owns its listener, its fibers and its sockets. Everything with state that matters across requests lives in the shared box, which is a frozen object graph whose only mutable parts are ratomic's atomics.</p>
+  </figure>
+
+  <div class="wide code-wrap" id="code">
+    <div class="tabs" role="tablist" aria-label="Ruby source files">
+      <%- SOURCES.each_with_index do |(path, _), i| -%>
+      <button type="button" role="tab" id="tab-<%= i %>" aria-controls="panel-<%= i %>" aria-selected="<%= i.zero? %>" tabindex="<%= i.zero? ? 0 : -1 %>"><%= path %></button>
+      <%- end -%>
+    </div>
+    <%- SOURCES.each_with_index do |(path, source), i| -%>
+    <div class="panel" role="tabpanel" id="panel-<%= i %>" aria-labelledby="tab-<%= i %>"<%= " hidden" unless i.zero? %>>
+      <div class="code-head"><span>ruby/<%= path %></span><span><%= source.lines.count { it.strip != "" } %> non-blank lines</span></div>
+      <pre><code data-lang="<%= path.end_with?(".rb") ? "ruby" : "bash" %>"><% source.each_line(chomp: true) do |line| %><span class="ln"><%= h(line) %></span><% end %></code></pre>
+    </div>
+    <%- end -%>
+  </div>
+  <div class="col">
+    <ul class="notes">
+      <li><span class="at">gateway.rb</span><span>The routes, written as a small DSL. The magic comment deep-freezes the table, and the rate-limit windows, cache entries and counters inside it are shareable already.</span></li>
+      <li><span class="at">rate_limit</span><span>One counter per key per second, in a <code>Ratomic::Map</code> every Ractor reads and writes.</span></li>
+      <li><span class="at">cache</span><span>A response is made shareable once and then served by every Ractor without copying it.</span></li>
+      <li><span class="at">metrics</span><span>Counters for the whole process, so any Ractor can answer <code>/metrics</code> with the full picture.</span></li>
+      <li><span class="at">app</span><span>Endpoints and balancers are built per Ractor; the layers are not. They chain with <code>yield</code>.</span></li>
+      <li><span class="at">lib/gateway</span><span>Ractors, threads or forks from the same code, and the one line that removes async's IO hooks.</span></li>
+    </ul>
+  </div>
+  <div class="col">
+    <p>The Go twin has the same layers and the same semantics in <%= RESULTS.fetch("loc")[:go].values.sum %> lines, shared through <code>sync.Map</code> and atomics, which is how Go has always worked. It ships in two builds: <code>encoding/json</code>, and a hand-written streaming filter on the experimental <code>encoding/json/jsontext</code>. The Ruby version is <%= RESULTS.fetch("loc")[:ruby].values.sum %> lines.</p>
+  </div>
+</section>
+<section id="sharing">
+  <div class="col">
+    <div class="eyebrow">The point of Ractors</div>
+    <h2>Shared state without IPC</h2>
+    <p>Forked workers share nothing they can change. A Puma cluster that wants one rate limit across workers needs Redis, metrics need a sidecar or memory-mapped files, and every worker keeps its own cache. Ractors live in one address space. Ruby lets them share frozen objects freely, and ratomic adds a few mutable structures that are safe to share: atomic counters, a concurrent map, a queue. So the gateway keeps its rate-limit windows, its cache and its metrics in one place, and all four Ractors update them in parallel.</p>
+    <p>Each check below ran against four workers. Ractors, threads and Go each share one copy of the state; forks get four copies that drift apart.</p>
+  </div>
+  <div class="wide proof">
+    <figure id="fig-metrics">
+      <h3>One <code>/metrics</code> scrape, four workers</h3>
+      <p class="cap">Share of all requests served that a single scrape reports, eight scrapes each.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+    <figure id="fig-limit">
+      <h3>Rate limit of 1,000 per second</h3>
+      <p class="cap">Requests let through in 10 seconds at an offered 5,000 per second. A 10-second run spans 11 windows, so the target is 11,000.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+    <figure id="fig-cache">
+      <h3>Cache of 1,000 URLs, 1 second TTL</h3>
+      <p class="cap">Requests that reached the upstream in 10 seconds at 40,000 per second. One shared cache needs 1,000 per second, 10,000 in all.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+  </div>
+  <div class="col">
+    <p>Forks fail all three in the expected way. Each scrape answers from whichever process caught the connection, so it reports a quarter of the traffic and a different number every time. Each process enforces the limit on its own, so <%= num(limit["ruby-fork"]) %> requests got through where <%= num(limit["ruby-ractor"]) %> did with Ractors. Each process has its own cache, so the backend saw <%= num(fetches["ruby-fork"]) %> requests instead of <%= num(fetches["ruby-ractor"]) %>. Threads get the sharing right but share one GVL: in the four seconds of the metrics check they served <%= num(share["ruby-thread"][:metrics][:served]) %> requests against <%= num(share["ruby-ractor"][:metrics][:served]) %> for Ractors.</p>
+    <p>Two details are worth knowing before you copy this. Ractors let <%= limit["ruby-ractor"] - 11_000 %> more than the limit through, where threads and Go hit 11,000 exactly. The rate limiter creates each second's counter with <code>windows[key] ||= Counter.new</code>, and when two Ractors race to create it, one counter overwrites the other and loses a count or two. Go's <code>sync.Map#LoadOrStore</code> has no such race, and ratomic's <code>fetch_or_store</code> would not either, but it runs its block while holding a lock, which is exactly the pattern that deadlocked Ruby 4.0.6 in log entry 10. So the gateway uses only the map's <code>[]</code>, <code>[]=</code> and <code>delete</code>, and I put it through 15 seconds of eight Ractors storing and replacing shared entries while 30 global collections ran, without a crash.</p>
+  </div>
+</section>
+
+<section id="profile">
+  <div class="col">
+    <div class="eyebrow">Ruby doing the work</div>
+    <h2>Where a request's time goes</h2>
+    <p>Profiles of one worker in thread mode, where the profiler can see everything. In the first version, Ruby code and the core methods it calls took <%= ruby_share.("v1", "raw") %>% of a pass-through request and <%= ruby_share.("v1", "api") %>% of a JSON one; the rest was sockets, the kernel and the json extension. Now it is <%= ruby_share.("v2", "raw") %>% and <%= ruby_share.("v2", "api") %>%.</p>
+  </div>
+  <figure id="fig-profile" class="wide">
+    <h3>Profile samples by where they landed</h3>
+    <p class="cap">Share of CPU samples. Gateway code is the methods in the repository; core methods are Ruby's own, mostly C, that the gateway calls.</p>
+    <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+    <div class="hbars"></div>
+  </figure>
+</section>
+<section id="log">
+  <div class="col">
+    <div class="eyebrow">The log</div>
+    <h2>Everything that broke, in the order it broke</h2>
+    <p>Two rounds in one day. Entries 1 to 12 built the first version, a lean proxy; entries 13 to 18 are the rebuild after the feedback that it was too simple and let C do Ruby's work. The numbers in each entry are what I measured at that moment; the charts further down come from the final run. Entry 19 came the next day.</p>
+  </div>
+  <div class="wide log">
+
+    <article class="entry">
+      <div class="no">01</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Toolchain</span></div>
+        <h3>Building Ruby master</h3>
+        <p>ruby/ruby at <code>9b8b0ae443</code>, configured with <code>--enable-yjit --enable-zjit</code>. Homebrew supplied autoconf. Bison is gone from the build because the parser generator, Lrama, now ships inside Ruby. The NEWS file had the first surprise: per-Ractor garbage collection arrived after 4.0, not in it, along with class ownership rules that stop a worker Ractor from modifying any class the main Ractor defined.</p>
+<pre class="term"><span class="c">$</span> ruby --zjit -v
+ruby 4.1.0dev (2026-10-03T08:20:45Z master 9b8b0ae443) +ZJIT +PRISM [x86_64-linux]
+<span class="c">$</span> grep -A3 'runs \*\*per Ractor' NEWS.md
+* The default GC now runs <span class="hl">**per Ractor**</span>: each Ractor collects its own heap
+  on its own thread without stopping the others, and a stop-the-world
+  collection only runs when it is really needed</pre>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">02</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Toolchain</span><span class="chip">ratomic</span></div>
+        <h3>ratomic will not compile: stdarg.h</h3>
+        <p>ratomic is Mike Perham's gem of Ractor-safe atomics, written in Rust. Its build generates Ruby bindings with libclang, and this machine's libclang-21 has no builtin headers.</p>
+<pre class="term"><span class="c">$</span> gem install ratomic
+  thread 'main' panicked at rb-sys-0.9.128/build/main.rs:52:6:
+  generate bindings: ClangDiagnostic(".../ruby-4.1.0+5/ruby/ruby.h:23:10:
+  <span class="hl">fatal error: 'stdarg.h' file not found</span>")</pre>
+        <p class="fix"><b>Fix</b> Point bindgen at GCC's headers: <code>BINDGEN_EXTRA_CLANG_ARGS="-I$(gcc -print-file-name=include)"</code>.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">03</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Ecosystem</span><span class="chip">ratomic</span></div>
+        <h3>ratomic will not compile: a C struct moved</h3>
+        <p>Next the Rust binding layer itself failed. Ruby master grew the function table inside <code>rb_data_type_t</code> from five slots to twelve, adding <code>handle_weak_references</code>, and magnus 0.8.2 fills in the old layout by hand.</p>
+<pre class="term"><span class="hl">error[E0063]: missing field `handle_weak_references` in initializer</span>
+              of `rb_data_type_struct__bindgen_ty_1`
+error: could not compile `magnus` (lib) due to 2 previous errors</pre>
+        <p class="fix"><b>Fix</b> magnus 0.9.2 already knows the new layout. I bumped magnus and rb-sys in a local ratomic branch and built the gem myself; the diff is <code>patches/ratomic-magnus-0.9.patch</code>. Eight Ractors then bumped one shared Counter 100,000 times each and it read exactly 800,000.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">04</div>
+      <div class="body">
+        <div class="chips"><span class="chip win">Good news</span><span class="chip">async</span></div>
+        <h3>async runs inside a Ractor, unmodified</h3>
+        <p>I expected to write my own fiber scheduler. socketry/async 2.46 and io-event 1.22 run as-is in non-main Ractors: <code>Sync</code>, <code>Async</code>, timeouts, <code>Async::Queue</code>, <code>Async::Semaphore</code>, and even Console's failure logging. io-event declares itself Ractor-safe in C, and async keeps its state in objects rather than in class-level caches, which is exactly what the new ownership rules demand.</p>
+<pre class="term">4.times.map do
+  Ractor.new do
+    server = Socket.new(:INET, :STREAM)
+    server.setsockopt(:SOCKET, :REUSEPORT, true)
+    server.bind(Addrinfo.tcp("127.0.0.1", 8080))
+    server.listen(1024)
+    Sync { loop { client, = server.accept; Async { hello(client) } } }
+  end
+end
+<span class="c">$</span> wrk -t4 -c64 -d5s http://127.0.0.1:8080/
+<span class="ok">Requests/sec: 927667.86</span></pre>
+        <p>A hello-world, so the number means little on its own. It does mean the whole stack holds together under load.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">05</div>
+      <div class="body">
+        <div class="chips"><span class="chip">My bug</span></div>
+        <h3>async hands you the task, not your argument</h3>
+<pre class="term">undefined method 'setsockopt' for an instance of <span class="hl">Async::Task</span> (NoMethodError)
+    client.setsockopt(:TCP, :NODELAY, true)</pre>
+        <p><code>task.async(client) { serve(it) }</code> passes the task as the first block argument, so <code>it</code> was the task. A plain local and <code>Kernel#Async</code> read better anyway.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">06</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Go</span><span class="chip ruby">Ruby wins</span></div>
+        <h3>Ruby's JSON is faster than Go's</h3>
+        <p>The first Go build trimmed 24,000 responses per second; Ruby did 61,000 on the same four cores. The json 3.0 C extension parses the 12 KB document, slices three keys out of 32 objects and regenerates the result in about 22 µs. Go's <code>encoding/json</code> needs over 100 µs, mostly reflection and allocation. You told me to go wild on the Go side, so I tried every serious option; the chart is in the <a href="#json">JSON section</a>. Only a hand-written streaming filter on the experimental <code>jsontext</code> package gets close, and it ships as the second Go build.</p>
+<pre class="term"><span class="c"># bench/json: the same 12,280-byte document, one core, best of five</span>
+BenchmarkStdAny          10000   118065 ns/op   88797 B/op   2238 allocs/op
+BenchmarkGoccyAny        34315    35019 ns/op   62977 B/op    338 allocs/op
+BenchmarkJsontextStream  49212    24390 ns/op   17944 B/op     52 allocs/op
+<span class="c">$</span> ruby --yjit bench/json/trim.rb
+<span class="ok">YJIT     21.8 us/op</span></pre>
+        <p>The jsontext package also bit back once: a token from <code>ReadToken</code> is invalidated by the next decoder call, so the key has to be written out before its value is read.</p>
+<pre class="term">panic: <span class="hl">invalid jsontext.Token; it has been voided by a subsequent json.Decoder call</span></pre>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">07</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Ecosystem</span><span class="chip">io-event</span><span class="chip win">+23%</span></div>
+        <h3>Ten syscalls per request</h3>
+        <p>On plain proxying Go led by 1.65&times;. A profile put three quarters of Ruby's time inside io-event's read and write calls, which is mostly the kernel, so I counted syscalls with strace.</p>
+<pre class="term"><span class="c"># strace -c, one worker, raw route        Ruby: 45,167 requests   Go: 102,246 requests</span>
+<span class="c">  calls  syscall                          calls  syscall</span>
+ 135510  write                           204492  write
+ <span class="hl">226139  fcntl</span>                           205762  read
+  90870  read                            102247  writev</pre>
+        <p>io-event calls <code>fcntl(F_GETFL)</code> before every read and write to check the non-blocking flag. With an <code>io_write</code> hook installed, Ruby also writes each argument of <code>IO#write(a, b)</code> separately instead of with one <code>writev</code>. Both hooks are optional in the scheduler interface; without them, Ruby performs the non-blocking call itself and asks the scheduler only to wait.</p>
+        <figure id="fig-sys" class="inline-fig">
+          <h3>Syscalls per proxied request</h3>
+          <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+          <div class="hbars"></div>
+        </figure>
+        <p class="fix"><b>Fix</b> <code>Async::Scheduler.undef_method(:io_read, :io_write)</code>. Four syscalls per request, one fewer than Go's first version. Pass-through rose 23% over async's defaults, and 9% over simply concatenating each response into one write.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">08</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Runtime</span><span class="chip">GC</span><span class="chip win">+45%</span></div>
+        <h3>The Ractor tax was the garbage collector</h3>
+        <p>Even with that fixed, a trimmed request cost 65 µs of CPU in a Ractor, 40 µs in the main thread and 42 µs in a forked process. Same code, same work. <code>GC.stat</code> inside a worker told the story.</p>
+        <div class="stat-row">
+          <div class="stat"><span class="k">GC runs in 5 s, main Ractor</span><span class="v">284</span><span class="d">40 major, 304 heap pages</span></div>
+          <div class="stat"><span class="k">GC runs in 5 s, worker Ractor</span><span class="v">12,371</span><span class="d">470 major, 13 heap pages</span></div>
+        </div>
+        <p>Koichi Sasada's commit <code>abac51a1ce</code> from 4 September gives every non-main Ractor the smallest heap that works, so that spawning 64 short-lived Ractors stays cheap. The main Ractor still starts with 2.5 MB. A server Ractor allocates hundreds of objects per request but keeps few of them, so its heap never looks crowded enough to grow, and it collected every eight requests.</p>
+        <figure id="fig-heap" class="inline-fig">
+          <h3>JSON route by starting heap per Ractor</h3>
+          <p class="cap">Four Ractors, requests per second. The knob is <code>RUBY_GC_RACTOR_HEAP_INIT_BYTES</code>.</p>
+          <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+          <div class="hbars"></div>
+        </figure>
+        <p class="fix"><b>Fix</b> <code>RUBY_GC_RACTOR_HEAP_INIT_BYTES=2621440</code>, the same 2.5 MB the main Ractor gets, set by <code>bin/proxy</code>. GCs per Ractor fell from 38,256 to 367 and the JSON route rose 45%. It is read at boot only; <code>GC.config</code> cannot change it at runtime.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">09</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Runtime</span><span class="chip">JIT</span></div>
+        <h3>The JIT barely moves the needle</h3>
+        <%- jit = ->(impl, route) { find_v1("tuning", impl:, route:)[:rps] } -%>
+        <p>Against the interpreter, YJIT adds <%= pct(jit.("ruby-ractor", "raw"), jit.("ruby-interp", "raw")) %> on pass-through and <%= pct(jit.("ruby-ractor", "trim"), jit.("ruby-interp", "trim")) %> on the JSON route; ZJIT adds <%= pct(jit.("ruby-zjit", "raw"), jit.("ruby-interp", "raw")) %> and <%= pct(jit.("ruby-zjit", "trim"), jit.("ruby-interp", "trim")) %>. The time goes to syscalls, the regex engine, the json extension and the GC, all of them C. ZJIT, which is still experimental, ran inside Ractors without complaint and edged out YJIT on pass-through.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">10</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Runtime</span><span class="chip">ratomic</span><span class="chip">Deadlock</span></div>
+        <h3>Ruby 4.0.6: more Ractors, less speed, then silence</h3>
+        <p>On the latest release, the same proxy served fewer pass-through requests with four Ractors than with one: 58,000 against 79,000. On the JSON route it stopped dead within seconds. Zero CPU, every thread parked in a futex wait, listen queues filling up. gdb, which had to start Ruby itself because this machine forbids attaching to a running process, showed the cycle.</p>
+<pre class="term"><span class="c">Thread 4: allocating, so it starts a stop-the-world GC and marks ratomic's Map</span>
+#2  dashmap::lock::RawRwLock::<span class="hl">lock_shared_slow</span> () from ratomic.so
+#3  magnus::typed_data::DataTypeFunctions::extern_mark () from ratomic.so
+#4  gc_mark_children (objspace=0x55555555cf50, obj=...) at gc/default/default.c:4637
+#18 rb_hash_new_with_size (size=3) at hash.c:1502
+#19 rb_hash_slice (argc=3, ...) at hash.c:2648
+<span class="c">Thread 5: holds that DashMap lock while calling Integer#+ back in Ruby</span>
+#7  <span class="hl">rb_ractor_sched_barrier_join</span> (vm=..., cr=...) at thread_pthread.c:1575
+#10 rb_threadptr_execute_interrupts (th=..., blocking_timing=0) at thread.c:2641
+#18 rb_funcallv_kw (recv=116073, mid=43, argc=1, ...) at vm_eval.c:1088
+#20 ratomic::init::anon () from ratomic.so</pre>
+        <p><code>Map#increment</code> computes the new value by calling back into Ruby while it holds a shard lock. On its way out of that call, thread 5 stops at the GC barrier. Thread 4 started the GC and now needs the same lock to mark the Map. On master each Ractor collects its own heap without stopping the others, and the cycle never formed under the same load. Master still runs an occasional global GC, which could close it.</p>
+        <p class="fix"><b>Fix</b> One <code>Ratomic::Counter</code> per Ractor instead of a Map: pure atomics, no lock, no callback. The deadlock went away and so did the negative scaling: four Ractors on 4.0.6 now serve <%= kilo(rps_v1("versions", "ruby406-ractor", 4, "raw")) %> pass-through and <%= kilo(rps_v1("versions", "ruby406-ractor", 4, "trim")) %> trimmed requests per second, against <%= kilo(rps_v1("versions", "ruby-ractor", 4, "raw")) %> and <%= kilo(rps_v1("versions", "ruby-ractor", 4, "trim")) %> on master.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">11</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Harness</span></div>
+        <h3>Tooling paper cuts</h3>
+        <ul class="list">
+          <li><code>perf_event_paranoid</code> is 4 and there is no sudo, so no perf. I profiled with stackprof in thread mode, where all the work runs in the main Ractor.</li>
+          <li><code>ptrace_scope</code> is 1, so strace and gdb only see processes they start themselves.</li>
+          <li>wrk2's bundled LuaJIT writes a bytecode object that modern binutils call corrupt, and the binary panics on start. I rebuilt it against Homebrew's LuaJIT 2.1, with the bytecode compiled as C source and the removed <code>luaL_reg</code> name aliased back.</li>
+          <li><code>pkill -f 'gdb -batch'</code> matched my own shell's command line and killed it. So did a <code>pkill -f proxy_nohooks</code> earlier. Exact process names only, from then on.</li>
+          <li>Go listens on <code>[::]:8080</code>, which shows up only in <code>/proc/net/tcp6</code>, so the harness waited forever for a listener it could not see.</li>
+          <li>Forked Ruby workers hold port 8080 for a moment after the parent dies, so the harness now waits for the port to clear between runs.</li>
+          <%= "<li>#{NOTES[:go_two_procs]}</li>" if NOTES[:go_two_procs] %>
+        </ul>
+      </div>
+    </article>
+
+    <%- old_go = NOTES[:go_buffers_16k]; go10k = find_v1("concurrency", impl: "go-std", workers: 4, connections: 10_000); rb10k = find_v1("concurrency", impl: "ruby-ractor", workers: 4, connections: 10_000) -%>
+    <article class="entry">
+      <div class="no">12</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Go</span><span class="chip">Fairness</span></div>
+        <h3>My buffers flattered Go's syscalls and inflated its memory</h3>
+        <p>At 10,000 connections the first run had Go at <%= old_go[:pss_mb_10k_x4].round %> MB against Ruby's <%= mb(rb10k[:peak_pss_kb]) %>. Most of that was my doing: every Go connection had a 16 KB read buffer, twice the 8 KB Ruby gives each IO. The bigger buffer also let Go read a whole 12 KB upstream response in one syscall where Ruby needs two.</p>
+        <p class="fix"><b>Fix</b> 8 KB buffers on both legs, matching Ruby's <code>IO_RBUF_CAPA_MIN</code>, and every Go measurement re-run. Go's memory at 10,000 connections fell to <%= mb(go10k[:peak_pss_kb]) %>. The jsontext build went from <%= kilo(old_go[:trim_rps_4_jsontext]) %> to <%= kilo(rps_v1("scaling", "go-jsontext", 4, "trim")) %> on the JSON route, because it now needs a second read per response just as Ruby does. Pass-through went from <%= kilo(old_go[:raw_rps_4]) %> to <%= kilo(rps_v1("scaling", "go-std", 4, "raw")) %>.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">13</div>
+      <div class="body">
+        <div class="chips"><span class="chip ruby">Feedback</span></div>
+        <h3>The first version was too kind to Ruby</h3>
+        <p>The verdict on version one was blunt: too terse to be elegant, too simple, and suspiciously good for Ruby because the work happened outside it. The profile agreed. Gateway code was <%= profile[%w[v1 raw]][:"gateway Ruby code"] %>% of a pass-through request and <%= profile[%w[v1 api]][:"gateway Ruby code"] %>% of a JSON one; sockets and the kernel took <%= profile[%w[v1 raw]][:"IO and syscalls"].round %>%, and the json extension took <%= profile[%w[v1 api]][:"json extension"].round %>% of the JSON route.</p>
+        <p class="fix"><b>Rebuilt</b> as a gateway that parses HTTP into objects, rewrites headers, chains layers and reshapes JSON in Ruby. On four Ractors, pass-through went from <%= kilo(v1[:raw4]) %> to <%= kilo(raw4[:ruby]) %> requests per second, and the JSON route, now doing far more work, from <%= kilo(v1[:trim4]) %> to <%= kilo(api4[:ruby]) %>. That is what it costs to make Ruby do the work.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">14</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Ractors</span><span class="chip">Design</span></div>
+        <h3>Frozen objects are the sharing model</h3>
+        <p>Ruby lets Ractors share frozen objects and nothing else, so the design starts there. Every layer is a frozen object, usually a <code>Data</code> value, whose only mutable parts are ratomic structures. A frozen object with shareable instance variables can be called from any Ractor, and classes the main Ractor defined are readable everywhere, so the layers need no special handling at all.</p>
+<pre class="term">RateLimit = Data.define(:per_second, :plans, :windows) do
+  def initialize(per_second:, plans: {}, windows: Ratomic::Map.new) = super
+  ...
+end
+
+ROUTES = Gateway.routes do ... end    <span class="c"># shareable_constant_value: experimental_everything</span>
+Ractor.shareable?(ROUTES)             <span class="c"># => true, windows and counters included</span></pre>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">15</div>
+      <div class="body">
+        <div class="chips"><span class="chip">GC</span><span class="chip">ratomic</span><span class="chip win">Held up</span></div>
+        <h3>Objects made in one Ractor, read by all</h3>
+        <p>The cache stores responses built inside a worker Ractor, and the rate limiter creates its counters there, all kept in a map that belongs to the main Ractor. With master's per-Ractor collector, that could become a use-after-free if a worker's GC reclaimed an object only the map still pointed at. Making each value shareable before storing it is what keeps it alive, and I tested that before building on it: eight Ractors hammering one map for 15 seconds while the main Ractor forced a global collection every half second.</p>
+<pre class="term">{results: [[8057915, 110529], [8083377, 103721], ... 8 Ractors as [hits, stores] ...],
+ global_gcs: 30, cache_size: 491, gc: {count: 9612, major_gc_count: 361}}
+<span class="ok">exit=0</span></pre>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">16</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Shared state</span></div>
+        <h3>Forks get it wrong, quietly</h3>
+        <p>Nothing crashes in fork mode. The same code just gives different answers: <%= num(limit["ruby-fork"]) %> requests through a limit that let <%= num(limit["ruby-ractor"]) %> through with Ractors, <%= num(fetches["ruby-fork"]) %> backend fetches where Ractors needed <%= num(fetches["ruby-ractor"]) %>, and a <code>/metrics</code> page that changes from one scrape to the next. That is the failure mode that sends teams to Redis. The <a href="#sharing">shared state section</a> has the full comparison.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">17</div>
+      <div class="body">
+        <div class="chips"><span class="chip">JIT</span></div>
+        <h3>The JIT still barely moves the needle</h3>
+        <p>Even the rewrite, the most Ruby-heavy code in the gateway, gains only about 5% from a JIT: <%= NOTES[:rewrite_us][2][:fields] %> µs per document on the interpreter, <%= NOTES[:rewrite_us][0][:fields] %> µs with YJIT and <%= NOTES[:rewrite_us][1][:fields] %> µs with ZJIT. Idiomatic Ruby spends its time inside core methods like <code>split</code>, <code>to_h</code> and <code>join</code>. They are written in C, and no JIT makes them faster.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="no">18</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Harness</span></div>
+        <h3>More paper cuts</h3>
+        <ul class="list">
+          <li>My upstream ignored <code>Connection: close</code>, so the harness waited forever for it to hang up after a <code>/__count</code> request.</li>
+          <li>Ruby's <code>TCPServer.new</code> does not set <code>SO_REUSEADDR</code>. After eight <code>/metrics</code> scrapes closed by the server, the harness's port check failed for 60 seconds on the leftover TIME_WAIT sockets. The gateway itself rebinds through <code>SO_REUSEPORT</code>, and now sets both.</li>
+          <li>Go's listener does not set <code>SO_REUSEPORT</code>, so its TIME_WAIT sockets blocked the first version's listener, which set only that.</li>
+          <li>The upstream's request counter covers the whole process, and I summed two of its ports. Every fetch counted twice and looked like a cache bug until a timeline of <code>x-cache</code> headers showed exactly one miss per second.</li>
+          <li><code>pkill -f 'gateway.rb'</code> killed my own shell. Third time today.</li>
+          <li><code>gateway-jsontext</code> is 16 characters, and <code>pkill -x</code> matches at most 15.</li>
+          <li>At full load, cache stampedes add misses in every mode, so the cache check runs at a steady 40,000 requests per second with wrk2.</li>
+          <li>Ten seconds of the rate-limit check touch eleven clock seconds, and a correct limiter only lets 11,000 through when neither partial second is shorter than a fifth of a second. A later run started just before a second boundary and threads allowed 10,446, so the harness now starts that check mid-second.</li>
+        </ul>
+      </div>
+    </article>
+
+    <%- cache_run = ->(impl, workers) { find("caching", impl:, workers:) }; fixed, leaky = cache_run.("ruby-ractor", 4), cache_run.("ruby-leaky", 4) -%>
+    <article class="entry" id="leak">
+      <div class="no">19</div>
+      <div class="body">
+        <div class="chips"><span class="chip">Runtime</span><span class="chip">GC</span><span class="chip win">−<%= ((1 - fixed[:pss_kb_peak].to_f / leaky[:pss_kb_peak]) * 100).round %>% memory</span></div>
+        <h3>Frozen garbage that no collector frees</h3>
+        <p>Looking for a workload where forks lose on a number and not only on correctness, I gave the cache 64 KB responses. Forks should need four copies of it and Ractors one. Instead four Ractors used as much memory as four forks, while four threads, which share one cache too, used a quarter of it.</p>
+        <p>Inside a worker Ractor, plain strings, frozen strings and large strings were all collected. Objects that went through <code>Ractor.make_shareable</code>, or through <code>Ractor.shareable?</code>, which sets the same flag, were not, and memory grew at exactly the rate they were made.</p>
+<pre class="term">Ractor.new { loop { Ractor.make_shareable("x" * 65_536); sleep 0.001 } }
+loop { sleep 1; puts File.read("/proc/self/status")[/VmRSS.*/] }
+<span class="c">$</span> ruby repro.rb
+<%= NOTES[:shareable_leak][:rss_kb].first(5).map { "VmRSS:\t#{it.to_s.rjust(9)} kB" }.join("\n") %>
+<span class="c"># after <%= NOTES[:shareable_leak][:seconds] %> s:</span> <span class="hl"><%= (NOTES[:shareable_leak][:rss_kb].last / 1024.0 / 1024).round(1) %> GB, GC.stat(:global_gc_count) = <%= NOTES[:shareable_leak][:global_gc_count] %></span></pre>
+        <p>The per-Ractor GC pull request, ruby/ruby#18194, explains it. A Ractor's own collection pins every shareable object, since another Ractor might hold it: “Only a global GC can decide a shareable object is dead.” A global GC runs on an explicit <code>GC.start</code>, when the number of shareable objects grows, or to reclaim the pages of dead Ractors. Bytes are not on that list, so a few thousand large frozen responses never set one off.</p>
+        <p class="fix"><b>Fix</b> The main Ractor forces a global collection once a second, <code>Thread.new { loop { sleep 1; GC.start } }</code>. Four Ractors then peak at <%= mb(fixed[:pss_kb_peak]) %> instead of <%= mb(leaky[:pss_kb_peak]) %>, and p99 goes from <%= leaky[:latency_ms][:"99"] %> to <%= fixed[:latency_ms][:"99"] %> ms, because a global collection pauses every Ractor. The real fix belongs in Ruby: the trigger should count bytes, not only objects.</p>
+        <p>The timer has a side effect I did not expect. Before I took it out of the stock build, stock master already reached <%= kilo(NOTES[:timer_masks_heap][:stock_with_timer][:api]) %> on the API route, against <%= kilo(NOTES[:timer_masks_heap][:heap_with_timer][:api]) %> with the heap variable as well: a global collection every second also grows the worker Ractors' heaps, which hides the wall from <a href="#log">entry 08</a>. The ladder above measures every fix without the timer.</p>
+      </div>
+    </article>
+  </div>
+</section>
+<%-
+  conc = ->(impl, workers, c) { find("concurrency", impl:, workers:, connections: c) }
+  idle_kb = ->(impl) { (find("idle", impl:, connections: 10_000)[:pss_kb] - find("idle", impl:, connections: 0)[:pss_kb]) / 10_000.0 }
+  lat = ->(impl, route, rate) { find("latency", impl:, route:, rate:) }
+  tune = ->(impl, route) { find("tuning", impl:, route:)[:rps] }
+  busy = ->(impl, route, w) { r = find("scaling", impl:, workers: w, route:); r[:rps] * r[:cpu_us_per_request] / 1e6 }
+  api1 = { ruby: rps("scaling", "ruby-ractor", 1, "api"), jt: rps("scaling", "go-jsontext", 1, "api") }
+-%>
+<section id="scaling">
+  <div class="col">
+    <div class="eyebrow">The numbers</div>
+    <h2>Scaling across cores</h2>
+    <p>Everything ran on one machine over loopback, each role pinned to its own cores so the load generator and the upstream never compete with the gateway. Each point is the median of three 8-second wrk runs with 256 keep-alive connections after a 2-second warm-up. CPU time comes from <code>/proc</code>; memory is PSS, so forked processes are not double-counted.</p>
+  </div>
+  <figure class="wide">
+    <h3>Who runs where</h3>
+    <div class="cpu-map" role="img" aria-label="CPU assignment: logical CPUs 0 to 3 run the gateway, 4 and 5 the upstream, 6 and 7 wrk. Their SMT siblings 8 to 15 follow the same split; 8 to 11 join the gateway only in the 8-CPU runs.">
+      <%- [[0, "p", "gateway"], [1, "p", "gateway"], [2, "p", "gateway"], [3, "p", "gateway"], [4, "u", "upstream"], [5, "u", "upstream"], [6, "w", "wrk"], [7, "w", "wrk"], [8, "p8", "gateway x8"], [9, "p8", "gateway x8"], [10, "p8", "gateway x8"], [11, "p8", "gateway x8"], [12, "u", "upstream"], [13, "u", "upstream"], [14, "w", "wrk"], [15, "w", "wrk"]].each do |cpu, cls, role| -%>
+      <div class="<%= cls %>">cpu <%= cpu %><br><%= role %></div>
+      <%- end -%>
+    </div>
+    <p class="cap">Logical CPUs <i>n</i> and <i>n</i>+8 share a physical core. The 1, 2 and 4 runs use whole cores; the 8 run adds their SMT siblings, so it is four cores with hyperthreading. wrk aimed straight at the upstream peaks at <%= kilo(NOTES[:harness_ceiling][:raw]) %> requests per second.</p>
+  </figure>
+  <div class="wide grid3">
+    <figure id="fig-scale-raw">
+      <h3>Pass-through</h3>
+      <p class="cap">Requests per second. Parse, rewrite headers, forward, parse the reply, write it back.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="plot"></div>
+    </figure>
+    <figure id="fig-scale-api">
+      <h3>API rewrite</h3>
+      <p class="cap">Requests per second. Rate limit check, then 12 KB of JSON filtered, camelCased and masked.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="plot"></div>
+    </figure>
+    <figure id="fig-scale-hit">
+      <h3>Cache hit</h3>
+      <p class="cap">Requests per second, answered from the shared cache without touching the upstream.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="plot"></div>
+    </figure>
+  </div>
+  <div class="col">
+    <p>Ractors and forks track each other on every route, so sharing the cache and the counters costs Ractors nothing measurable. Threads stay flat behind the GVL. Go leads pass-through by <%= times(raw4[:go], raw4[:ruby]) %> and cache hits by <%= times(hit4[:go], hit4[:ruby]) %>. On the API route Ruby beats Go's standard library and trails the jsontext build: one CPU gives <%= kilo(api1[:ruby]) %> against <%= kilo(api1[:jt]) %>, four give <%= kilo(api4[:ruby]) %> against <%= kilo(api4[:jt]) %>. Ractors keep their cores busier than Go does, <%= busy.("ruby-ractor", "api", 4).round(2) %> of four on the API route against <%= busy.("go-jsontext", "api", 4).round(2) %> for Go, which narrows but does not close the gap.</p>
+  </div>
+  <figure id="fig-cpu" class="wide">
+    <h3>CPU per request, 4 workers</h3>
+    <p class="cap">Microseconds of CPU, user and kernel together, for each route.</p>
+    <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+    <div class="hbars"></div>
+  </figure>
+</section>
+
+<section id="tuning">
+  <div class="col">
+    <h2>What each fix bought</h2>
+    <p>The two fixes from the first round still matter. On four Ractors, the 2.5 MB Ractor heap takes the API route from <%= kilo(tune.("ruby-stock", "api")) %> to <%= kilo(tune.("ruby-heap", "api")) %> requests per second, and removing async's IO hooks takes pass-through from <%= kilo(tune.("ruby-heap", "raw")) %> to <%= kilo(tune.("ruby-leaky", "raw")) %>. The GC timer from <a href="#leak">entry 19</a> is about memory, and on throughput it moves pass-through from <%= kilo(tune.("ruby-leaky", "raw")) %> to <%= kilo(tune.("ruby-ractor", "raw")) %>. The JIT adds the least. Against Ruby 4.0.6 the gap is the widest of all: the same code with four Ractors serves <%= kilo(rps("versions", "ruby406-ractor", 4, "api")) %> API requests per second there and <%= kilo(rps("versions", "ruby-ractor", 4, "api")) %> on master.</p>
+  </div>
+  <div class="wide grid2">
+    <figure id="fig-tuning">
+      <h3>Tuning ladder, 4 Ractors</h3>
+      <p class="cap">Requests per second. Stock master uses async's default hooks and the default Ractor heap; each row adds one change, and the last two swap the JIT.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+    <figure id="fig-versions">
+      <h3>Ruby 4.0.6 against master</h3>
+      <p class="cap">Requests per second with one and four Ractors.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+  </div>
+</section>
+
+<section id="concurrency">
+  <div class="col">
+    <h2>Ten thousand connections</h2>
+    <p>This is the Fiber half. Every request waits 50 ms at the upstream, so a connection can complete at most 20 requests per second; the grey line is that ceiling, and a thread pool of 16 would top out at 320. At 10,000 connections four Ractors served <%= kilo(conc.("ruby-ractor", 4, 10_000)[:rps]) %> requests per second with a p99 of <%= ms_text(conc.("ruby-ractor", 4, 10_000)[:latency_ms][:"99"]) %>, against Go's <%= kilo(conc.("go-std", 4, 10_000)[:rps]) %>. A single Ractor on one core saturates first.</p>
+  </div>
+  <div class="wide grid2">
+    <figure id="fig-conc-rps">
+      <h3>Throughput at 50 ms upstream latency</h3>
+      <p class="cap">Requests per second against open connections, log scale.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="plot"></div>
+    </figure>
+    <figure id="fig-conc-p99">
+      <h3>p99 latency at 50 ms upstream latency</h3>
+      <p class="cap">Milliseconds, including the 50 ms the upstream sleeps.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="plot"></div>
+    </figure>
+  </div>
+</section>
+
+<section id="latency">
+  <div class="col">
+    <h2>Latency at a fixed rate</h2>
+    <p>wrk measures latency while pushing as hard as it can, which hides queueing. wrk2 holds a constant rate and corrects for that, so these percentiles are what a client sees at a steady load. Four workers each, 30-second runs. At 150,000 pass-through requests per second Ruby's p99 is <%= ms_text(lat.("ruby-ractor", "raw", 150_000)[:latency_ms][:"99"]) %> against Go's <%= ms_text(lat.("go-std", "raw", 150_000)[:latency_ms][:"99"]) %>; on the API route at 20,000 it is <%= ms_text(lat.("ruby-ractor", "api", 20_000)[:latency_ms][:"99"]) %> against <%= ms_text(lat.("go-jsontext", "api", 20_000)[:latency_ms][:"99"]) %> for the jsontext build.</p>
+  </div>
+  <figure id="fig-latency" class="wide">
+    <h3>Latency percentiles at a constant request rate</h3>
+    <p class="cap">Milliseconds. A rate an implementation cannot sustain shows up as queueing in the high percentiles.</p>
+    <div class="tbl-wrap"><table></table></div>
+  </figure>
+</section>
+
+<section id="memory">
+  <div class="col">
+    <h2>Memory</h2>
+    <p>Ractors share one heap of code and frozen data; forks share only what copy-on-write has not copied yet, and Ruby's GC keeps writing to its pages. PSS splits shared pages fairly, so the fork numbers are not inflated. An idle keep-alive connection costs Ruby about <%= idle_kb.("ruby-ractor").round %> KB as a parked fiber and Go about <%= idle_kb.("go-std").round %> KB as a parked goroutine. Under the API load, four Ractors peak at <%= mb(find("scaling", impl: "ruby-ractor", workers: 4, route: "api")[:peak_pss_kb]) %>, four forks at <%= mb(find("scaling", impl: "ruby-fork", workers: 4, route: "api")[:peak_pss_kb]) %> and Go at <%= mb(find("scaling", impl: "go-std", workers: 4, route: "api")[:peak_pss_kb]) %>.</p>
+    <%- cache_peak = ->(impl, workers) { find("caching", impl:, workers:)[:pss_kb_peak] } -%>
+    <p>A cache makes the difference plain. Serving 1,000 cached responses of 64 KB, four Ractors peak at <%= mb(cache_peak.("ruby-ractor", 4)) %> and four forks at <%= mb(cache_peak.("ruby-fork", 4)) %>, because every fork fills a copy of its own; with eight workers it is <%= mb(cache_peak.("ruby-ractor", 8)) %> against <%= mb(cache_peak.("ruby-fork", 8)) %>. The Ractor numbers need the fix from <a href="#leak">entry 19</a>: without it, four Ractors reach <%= mb(cache_peak.("ruby-leaky", 4)) %> in the same ten seconds and keep growing.</p>
+  </div>
+  <div class="wide grid2">
+    <figure id="fig-mem-load">
+      <h3>Peak memory under the API load</h3>
+      <p class="cap">PSS in MB, summed over every process, by worker count.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="plot"></div>
+    </figure>
+    <figure id="fig-mem-idle">
+      <h3>Memory per idle connection</h3>
+      <p class="cap">KB of PSS per connection, from 0 to 10,000 held connections, 4 workers.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+  </div>
+  <figure id="fig-mem-cache" class="wide">
+    <h3>Memory holding a 64 MB cache</h3>
+    <p class="cap">Peak PSS while serving 1,000 cached responses of 64 KB at 40,000 requests a second for 10 seconds. The notes give upstream fetches; one per URL per second is 10,000.</p>
+    <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+    <div class="hbars"></div>
+  </figure>
+</section>
+
+<section id="json">
+  <div class="col">
+    <h2>The rewrite, in isolation</h2>
+    <p>The API route's CPU stage on its own: parse the 12,280-byte document, keep four fields of each of its 32 objects or keep them all, camelCase every key, mask the emails, serialize. One core, the gateway's own code in both languages. Ruby beats Go's standard library on the filtered document and loses on the whole one, where its per-key work dominates. The jsontext build never builds a map at all and wins both. The library chart below is the parse-and-generate part alone, from the first round.</p>
+  </div>
+  <div class="wide grid2">
+    <figure id="fig-rewrite">
+      <h3>Rewrite one document</h3>
+      <p class="cap">Microseconds per operation. Lower is faster.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+    <figure id="fig-json">
+      <h3>Parse, filter and serialize, by library</h3>
+      <p class="cap">Microseconds per operation, first-round benchmark. Lower is faster.</p>
+      <div class="tools"><div class="legend"></div><button class="tbl" type="button">Table</button></div>
+      <div class="hbars"></div>
+    </figure>
+  </div>
+</section>
+<section id="verdict">
+  <div class="wide">
+    <h2>The cool and the ugly</h2>
+  </div>
+  <div class="wide two">
+    <div>
+      <h3>Cool</h3>
+      <ul class="list">
+        <li>Shared state with no IPC. One rate limit, one cache and one set of metrics for four Ractors running in parallel, where forks need Redis, a sidecar or memory-mapped files.</li>
+        <li>Sharing costs nothing measurable: Ractors match forks request for request on every route.</li>
+        <li>One copy of everything: with a 64 MB cache, four Ractors peak at <%= mb(find("caching", impl: "ruby-ractor", workers: 4)[:pss_kb_peak]) %> and four forks at <%= mb(find("caching", impl: "ruby-fork", workers: 4)[:pss_kb_peak]) %>.</li>
+        <li>async, io-event and ratomic run inside Ractors on master without changes.</li>
+        <li>The design falls out of Ruby's rules. Frozen <code>Data</code> layers are shareable, so a 20-line DSL builds a routes table every Ractor can use.</li>
+        <li>The same file runs as Ractors, threads or forks, which makes the comparisons above a one-word change.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Ugly</h3>
+      <ul class="list">
+        <li>Go is still <%= times(raw4[:go], raw4[:ruby]) %> faster at pass-through and <%= times(hit4[:go], hit4[:ruby]) %> at cache hits, and idiomatic Ruby spends its time in core methods that no JIT speeds up.</li>
+        <li><code>Warning[:experimental] = false</code>, a boot-time environment variable for the Ractor heap, and a monkey patch on async's scheduler. Each is worth double digits.</li>
+        <li>ratomic needs a patched Rust binding on master. Only part of its Map is safe to use: the methods that take a block hold a lock while they run your code.</li>
+        <li>Without a race-free create-if-missing, the shared rate limiter lets a couple of extra requests through per window.</li>
+        <li>Large frozen objects are freed only by a global collection, which nothing triggers for them, so the gateway forces one every second and pays for it in p99.</li>
+        <li>SO_REUSEPORT pins a connection to one Ractor for life, and class ownership means any gem that memoizes into class-level state breaks inside a worker Ractor.</li>
+        <li>No profiler I tried looks inside a worker Ractor; every profile here ran in thread mode.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="next">
+  <div class="col">
+    <h2>What a few more years might buy</h2>
+    <p>Every wall in this log was a default or a library that has not caught up with a runtime that changed this year.</p>
+    <ul class="list">
+      <li><strong>Server-shaped GC defaults</strong>: a Ractor heap that grows with allocation rate as well as live data.</li>
+      <li><strong>Shareable containers with the full set of atomic operations</strong>: compare-and-set, and a create-if-missing that never runs user code under a lock.</li>
+      <li><strong>An event loop that remembers</strong> each descriptor is non-blocking instead of asking the kernel on every read.</li>
+      <li><strong>Gems written for ownership</strong>: no class-level caches, so they load in any Ractor.</li>
+      <li><strong>Profilers that see every Ractor.</strong></li>
+      <li><strong>Then Rails</strong>: fibers first, Ractor workers instead of forks for memory and shared caches, and parallel work inside one request.</li>
+    </ul>
+    <p>So, are we fast yet? Not at raw speed. Once Ruby does the work, Go does it faster on this machine, and a JIT will not close that gap while the work sits in core methods. But the question has changed. For the first time one Ruby process can use every core and share live state between them, the thing we reach for Redis, sidecars and memory-mapped files to fake today. That part is here.</p>
+  </div>
+</section>
+
+<section id="reproduce">
+  <div class="col">
+    <h2>Reproduce it</h2>
+    <p>The repository has both gateways, the upstream, the connection holder, the harness that produced every chart here, and this page's generator.</p>
+  </div>
+<pre class="wide term"><span class="c"># Ruby master with both JITs (needs autoconf and a Rust toolchain)</span>
+git clone https://github.com/ruby/ruby && cd ruby && ./autogen.sh && mkdir build && cd build
+../configure --prefix=$HOME/.rbenv/versions/4.1.0-dev --enable-yjit --enable-zjit --disable-install-doc
+make -j16 && make install
+
+<span class="c"># async from rubygems, ratomic patched for master's rb_data_type_t</span>
+gem install async
+git clone https://github.com/mperham/ratomic && cd ratomic
+git apply ../ruby-go-reverse-proxy/patches/ratomic-magnus-0.9.patch
+BINDGEN_EXTRA_CLANG_ARGS="-I$(gcc -print-file-name=include)" gem build ratomic.gemspec
+gem install ./ratomic-0.4.3.gem
+
+<span class="c"># run it</span>
+(cd bench/upstream && go build) && bench/upstream/upstream -ports 9001,9002,9003,9004 &
+MODE=ractor WORKERS=4 ruby/bin/gateway               <span class="c"># or MODE=fork, MODE=thread</span>
+(cd go && go build -o bin/gateway-std . && GOEXPERIMENT=jsonv2 go build -o bin/gateway-jsontext .)
+curl -H 'X-Api-Key: free' 'localhost:8080/api/users?fields=id,name,email,created_at'
+curl localhost:8080/metrics
+
+<span class="c"># measure and rebuild this page</span>
+ruby bench/run.rb
+ruby bench/report/build.rb</pre>
+</section>
+
+<footer class="wide">
+  Measured <%= Time.parse(RESULTS["environment"][:date]).strftime("%-d %B %Y") rescue "October 2026" %> on <%= RESULTS["environment"][:cpu] %>, Linux <%= RESULTS["environment"][:kernel] %>. <%= RESULTS["environment"][:rubies][:master] %>. <%= RESULTS["environment"][:go] %>.
+</footer>
+</div>
+<script id="data" type="application/json"><%= DATA_JSON %></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(() => {
+  "use strict";
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const NS = "http://www.w3.org/2000/svg";
+  const nf = new Intl.NumberFormat("en-US");
+  const k = (n) => {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1e3) return (n >= 1e5 ? Math.round(n / 1e3) : (n / 1e3).toFixed(1).replace(/\.0$/, "")) + "k";
+    return String(Math.round(n));
+  };
+  const ms = (v) => v == null ? "n/a" : v >= 1000 ? (v / 1000).toFixed(2) + " s" : v >= 10 ? Math.round(v) + " ms" : v.toFixed(2) + " ms";
+  const svg = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const a in attrs) n.setAttribute(a, attrs[a]); if (parent) parent.appendChild(n); return n; };
+  const el = (tag, cls, text, parent) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; if (parent) parent.appendChild(n); return n; };
+  const find = (rows, match) => (rows || []).find((r) => Object.entries(match).every(([key, v]) => r[key] === v));
+  const C = { ruby: "var(--s-ruby)", rubySoft: "var(--s-ruby-soft)", go: "var(--s-go)", goSoft: "var(--s-go-soft)", grey: "var(--s-grey)", accent: "var(--ruby)" };
+
+  function niceStep(raw) { const p = 10 ** Math.floor(Math.log10(raw)); const m = raw / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
+  function ticks(max, count = 4) { const step = niceStep(max / count); const out = []; for (let v = 0; v < max + step * 0.999; v += step) out.push(Math.round(v * 1e6) / 1e6); return out; }
+
+  function tooltip(host) {
+    const tip = el("div", "tip", null, host);
+    tip.hidden = true;
+    return {
+      show(x, y, title, rows) {
+        tip.textContent = "";
+        el("div", "t", title, tip);
+        for (const r of rows) {
+          const row = el("div", "row", null, tip);
+          const key = el("i", r.swatch ? "swatch" : r.dash ? "key dash" : "key", null, row);
+          if (r.swatch) key.style.background = r.color; else key.style.borderTopColor = r.color;
+          el("span", null, r.label, row);
+          el("b", null, r.value, row);
+        }
+        tip.hidden = false;
+        const w = host.clientWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
+        let left = x + 16;
+        if (left + tw > w) left = Math.max(0, x - tw - 16);
+        tip.style.left = left + "px";
+        tip.style.top = Math.max(0, y - th / 2) + "px";
+      },
+      hide() { tip.hidden = true; },
+    };
+  }
+
+  function legend(fig, items) {
+    const box = fig.querySelector(".legend");
+    if (!box) return;
+    box.textContent = "";
+    for (const it of items) {
+      const span = el("span", null, null, box);
+      const key = el("i", it.swatch ? "swatch" : it.dash ? "key dash" : "key", null, span);
+      if (it.swatch) key.style.background = it.color; else key.style.borderTopColor = it.color;
+      span.append(it.label);
+    }
+  }
+
+  function table(fig, headers, rows) {
+    const btn = fig.querySelector("button.tbl");
+    const wrap = el("div", "tbl-wrap", null, fig);
+    wrap.hidden = true;
+    const t = el("table", null, null, wrap);
+    const head = el("tr", null, null, el("thead", null, null, t));
+    headers.forEach((h) => el("th", null, h, head));
+    const body = el("tbody", null, null, t);
+    rows.forEach((r) => { const tr = el("tr", null, null, body); r.forEach((c, i) => el("td", i ? "num" : null, c, tr)); });
+    if (!btn) { wrap.hidden = false; return; }
+    btn.setAttribute("aria-expanded", "false");
+    btn.addEventListener("click", () => {
+      wrap.hidden = !wrap.hidden;
+      btn.setAttribute("aria-expanded", String(!wrap.hidden));
+      btn.textContent = wrap.hidden ? "Table" : "Hide table";
+    });
+  }
+
+  function lineChart(fig, spec) {
+    if (!fig) return;
+    const plot = fig.querySelector(".plot");
+    const ref = spec.ref ? [{ label: spec.ref.label, color: C.grey }] : [];
+    legend(fig, spec.series.map((s) => ({ label: s.label, color: s.color, dash: s.dash })).concat(ref));
+    table(fig, [spec.xName, ...spec.series.map((s) => s.label), ...(spec.ref ? [spec.ref.label] : [])],
+      spec.xs.map((x, i) => [spec.xFmt(x), ...spec.series.map((s) => s.values[i] == null ? "n/a" : spec.tableFmt(s.values[i])), ...(spec.ref ? [spec.tableFmt(spec.ref.values[i])] : [])]));
+    let lastW = 0;
+    const draw = () => {
+      const W = Math.round(plot.clientWidth);
+      if (!W || W === lastW) return;
+      lastW = W;
+      plot.textContent = "";
+      const H = W < 520 ? 250 : 300;
+      const ends = spec.series.filter((s) => s.end);
+      const m = { l: 52, r: ends.length ? 70 : 16, t: 14, b: 42 };
+      const xs = spec.xs, n = xs.length, iw = W - m.l - m.r, ih = H - m.t - m.b;
+      const lx = xs.map((x) => Math.log(x));
+      const X = (i) => m.l + (spec.log ? (lx[i] - lx[0]) / (lx[n - 1] - lx[0]) : i / (n - 1)) * iw;
+      const all = spec.series.flatMap((s) => s.values).concat(spec.ref && spec.ref.inScale ? spec.ref.values : []).filter((v) => v != null);
+      const yt = ticks(Math.max(...all) * 1.05);
+      const ymax = yt[yt.length - 1];
+      const Y = (v) => m.t + (1 - Math.min(v, ymax) / ymax) * ih;
+      const root = svg("svg", { viewBox: `0 0 ${W} ${H}`, height: H, tabindex: 0, role: "img", "aria-label": spec.aria }, plot);
+      yt.forEach((v) => {
+        svg("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: v === 0 ? "var(--axis)" : "var(--grid)", "stroke-width": 1, "shape-rendering": "crispEdges" }, root);
+        svg("text", { x: m.l - 8, y: Y(v) + 4, "text-anchor": "end" }, root).textContent = spec.yFmt(v);
+      });
+      xs.forEach((x, i) => { svg("text", { x: X(i), y: H - m.b + 19, "text-anchor": "middle" }, root).textContent = spec.xFmt(x); });
+      svg("text", { x: m.l + iw / 2, y: H - 4, "text-anchor": "middle", class: "lab" }, root).textContent = spec.xLabel;
+      if (spec.ref) {
+        const pts = spec.ref.values.map((v, i) => [X(i), Y(v)]).filter((p, i) => spec.ref.values[i] <= ymax || i === 0);
+        svg("polyline", { points: pts.map((p) => p.join(",")).join(" "), fill: "none", stroke: C.grey, "stroke-width": 1.5, "stroke-linecap": "round" }, root);
+      }
+      for (const s of spec.series) {
+        const pts = s.values.map((v, i) => (v == null ? null : [X(i), Y(v)])).filter(Boolean);
+        svg("polyline", { points: pts.map((p) => p.join(",")).join(" "), fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round", "stroke-dasharray": s.dash ? "7 5" : "none" }, root);
+        pts.forEach((p) => svg("circle", { cx: p[0], cy: p[1], r: 4, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 }, root));
+      }
+      const placed = [];
+      for (const s of ends) {
+        const i = s.values.length - 1;
+        if (s.values[i] == null) continue;
+        const y = Y(s.values[i]);
+        if (placed.some((p) => Math.abs(p - y) < 15)) continue;
+        placed.push(y);
+        svg("text", { x: X(i) + 10, y: y + 4, class: "lab" }, root).textContent = s.end;
+      }
+      const cross = svg("line", { y1: m.t, y2: m.t + ih, stroke: "var(--axis)", "stroke-width": 1, visibility: "hidden" }, root);
+      const hit = svg("rect", { x: m.l - 12, y: 0, width: iw + 24, height: H, fill: "transparent" }, root);
+      const tip = tooltip(plot);
+      let idx = -1;
+      const show = (i, y) => {
+        idx = i;
+        cross.setAttribute("x1", X(i));
+        cross.setAttribute("x2", X(i));
+        cross.setAttribute("visibility", "visible");
+        const rows = spec.series
+          .map((s) => ({ label: s.label, color: s.color, dash: s.dash, v: s.values[i] }))
+          .filter((r) => r.v != null)
+          .sort((a, b) => b.v - a.v)
+          .map((r) => ({ ...r, value: spec.tipFmt(r.v) }));
+        if (spec.ref) rows.push({ label: spec.ref.label, color: C.grey, value: spec.tipFmt(spec.ref.values[i]) });
+        tip.show(X(i), y ?? m.t + ih / 3, spec.tipTitle(xs[i]), rows);
+      };
+      const hide = () => { cross.setAttribute("visibility", "hidden"); tip.hide(); };
+      hit.addEventListener("pointermove", (e) => {
+        const r = root.getBoundingClientRect();
+        const px = ((e.clientX - r.left) * W) / r.width;
+        let best = 0;
+        xs.forEach((_, i) => { if (Math.abs(X(i) - px) < Math.abs(X(best) - px)) best = i; });
+        show(best, ((e.clientY - r.top) * H) / r.height);
+      });
+      hit.addEventListener("pointerleave", hide);
+      root.addEventListener("focus", () => show(idx < 0 ? n - 1 : idx));
+      root.addEventListener("blur", hide);
+      root.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        show(Math.max(0, Math.min(n - 1, (idx < 0 ? n - 1 : idx) + (e.key === "ArrowRight" ? 1 : -1))));
+      });
+    };
+    draw();
+    if (window.ResizeObserver) new ResizeObserver(draw).observe(plot);
+  }
+
+  function bars(fig, rows, opts) {
+    if (!fig) return;
+    const box = fig.querySelector(".hbars");
+    box.textContent = "";
+    const totals = rows.filter((r) => !r.group).map((r) => r.segs.reduce((a, s) => a + s.v, 0));
+    const max = Math.max(...totals) * (opts.pad || 1.24);
+    const tip = tooltip(fig);
+    for (const r of rows) {
+      if (r.group) { el("div", "hbar group-head", r.group, box); continue; }
+      const row = el("div", "hbar", null, box);
+      el("div", "lbl", r.label, row);
+      const track = el("div", "track", null, row);
+      track.tabIndex = 0;
+      track.setAttribute("aria-label", `${r.label}: ${opts.fmt(r.segs.reduce((a, s) => a + s.v, 0))}`);
+      const total = r.segs.reduce((a, s) => a + s.v, 0);
+      let acc = 0;
+      r.segs.forEach((s, i) => {
+        const seg = el("div", "seg" + (i === r.segs.length - 1 ? " end" : ""), null, track);
+        const gap = i ? 2 : 0;
+        seg.style.left = `calc(${(acc / max) * 100}% + ${gap}px)`;
+        seg.style.width = `max(2px, calc(${(s.v / max) * 100}% - ${gap}px))`;
+        seg.style.background = s.c;
+        acc += s.v;
+      });
+      el("div", "v", opts.fmt(total, r), track).style.left = `${(total / max) * 100}%`;
+      const show = () => {
+        const f = fig.getBoundingClientRect(), t = track.getBoundingClientRect();
+        const lines = r.segs.length > 1 || r.segs[0].name ? r.segs.map((s) => ({ label: s.name, color: s.c, swatch: true, value: opts.fmt(s.v) })) : [{ label: opts.unit, color: r.segs[0].c, swatch: true, value: opts.fmt(total) }];
+        if (r.note) lines.push({ label: r.note, color: "transparent", swatch: true, value: "" });
+        tip.show(t.left - f.left + (t.width * total) / max, t.top - f.top + t.height / 2, r.label, lines);
+      };
+      track.addEventListener("pointerenter", show);
+      track.addEventListener("focus", show);
+      track.addEventListener("pointerleave", () => tip.hide());
+      track.addEventListener("blur", () => tip.hide());
+    }
+  }
+
+  const S = D.scaling || [];
+  const N = D.notes || {};
+  const rps = (rows, impl, workers, route) => { const r = find(rows, { impl, workers, route }); return r ? r.rps : null; };
+  const CPUS = [1, 2, 4, 8];
+  const cpuFmt = (x) => (x === 8 ? "8 (SMT)" : String(x));
+  const reqFmt = (v) => nf.format(Math.round(v)) + " req/s";
+  const pctFmt = (v) => (Math.round(v * 10) / 10).toFixed(v >= 10 ? 0 : 1) + "%";
+  const NAMES = { "go-std": "Go", "go-jsontext": "Go, jsontext", "ruby-ractor": "Ruby, Ractors", "ruby-fork": "Ruby, 4 forks", "ruby-thread": "Ruby, threads" };
+  const COLORS = { "go-std": C.go, "go-jsontext": C.goSoft, "ruby-ractor": C.ruby, "ruby-fork": C.rubySoft, "ruby-thread": C.grey };
+
+  const scaleSpec = (route, series) => ({
+    xs: CPUS, xName: "CPUs", xFmt: cpuFmt, xLabel: "logical CPUs given to the gateway", yFmt: k, tipFmt: reqFmt, tableFmt: (v) => nf.format(v),
+    tipTitle: (x) => `${cpuFmt(x)} CPU${x > 1 ? "s" : ""}`,
+    aria: `Requests per second against CPUs, ${route} route`,
+    series: series.map(([impl, label, color, dash, end]) => ({ label, color, dash, end, values: CPUS.map((w) => rps(S, impl, w, route)) })),
+  });
+  const rubySeries = [["ruby-ractor", "Ruby, Ractors", C.ruby, false, "Ractors"], ["ruby-fork", "Ruby, fork", C.ruby, true, null], ["ruby-thread", "Ruby, threads", C.grey, false, "threads"]];
+  lineChart(document.getElementById("fig-scale-raw"), scaleSpec("raw", [["go-std", "Go", C.go, false, "Go"], ...rubySeries]));
+  lineChart(document.getElementById("fig-scale-api"), scaleSpec("api", [["go-std", "Go, encoding/json", C.go, false, "Go std"], ["go-jsontext", "Go, jsontext", C.go, true, null], ...rubySeries]));
+  lineChart(document.getElementById("fig-scale-hit"), scaleSpec("hit", [["go-std", "Go", C.go, false, "Go"], ...rubySeries]));
+
+  const ROUTE_NAMES = { raw: "Pass-through", api: "API rewrite", hit: "Cache hit" };
+  const cpuRows = [];
+  for (const route of ["raw", "api", "hit"]) {
+    cpuRows.push({ group: ROUTE_NAMES[route] });
+    for (const impl of route === "api" ? ["go-std", "go-jsontext", "ruby-ractor"] : ["go-std", "ruby-ractor"]) {
+      const r = find(S, { impl, workers: 4, route });
+      if (r && r.cpu_us_per_request) cpuRows.push({ label: NAMES[impl], segs: [{ v: r.cpu_us_per_request, c: COLORS[impl] }] });
+    }
+  }
+  bars(document.getElementById("fig-cpu"), cpuRows, { fmt: (v) => v.toFixed(1) + " µs", unit: "CPU" });
+  legend(document.getElementById("fig-cpu"), [{ label: "Ruby, Ractors", color: C.ruby, swatch: true }, { label: "Go", color: C.go, swatch: true }, { label: "Go, jsontext", color: C.goSoft, swatch: true }]);
+  table(document.getElementById("fig-cpu"), ["Route", "Go µs", "Go jsontext µs", "Ruby µs"], ["raw", "api", "hit"].map((route) => [ROUTE_NAMES[route], ...["go-std", "go-jsontext", "ruby-ractor"].map((impl) => { const r = find(S, { impl, workers: 4, route }); return r && r.cpu_us_per_request ? r.cpu_us_per_request.toFixed(1) : "n/a"; })]));
+
+  const SH = D.sharing || [];
+  const shareOrder = ["ruby-ractor", "ruby-thread", "go-std", "ruby-fork"];
+  const shareRows = (value, note) => shareOrder.map((impl) => { const r = find(SH, { impl }); return r && { label: NAMES[impl], segs: [{ v: value(r), c: COLORS[impl] }], note: note && note(r) }; }).filter(Boolean);
+  const scrapeShare = (r) => r.metrics.scrapes.reduce((a, b) => a + b, 0) / r.metrics.scrapes.length / r.metrics.served * 100;
+  bars(document.getElementById("fig-metrics"), shareRows(scrapeShare, (r) => `scrapes ranged ${pctFmt(Math.min(...r.metrics.scrapes) / r.metrics.served * 100)} to ${pctFmt(Math.max(...r.metrics.scrapes) / r.metrics.served * 100)}`), { fmt: pctFmt, unit: "of requests", pad: 1.3 });
+  table(document.getElementById("fig-metrics"), ["Workers", "Requests served", "Lowest scrape", "Highest scrape"], shareOrder.map((impl) => { const r = find(SH, { impl }); return r ? [NAMES[impl], nf.format(r.metrics.served), nf.format(Math.min(...r.metrics.scrapes)), nf.format(Math.max(...r.metrics.scrapes))] : null; }).filter(Boolean));
+  bars(document.getElementById("fig-limit"), shareRows((r) => r.rate_limit.allowed), { fmt: (v) => nf.format(v), unit: "let through" });
+  table(document.getElementById("fig-limit"), ["Workers", "Requests offered", "Let through", "Turned away"], shareOrder.map((impl) => { const r = find(SH, { impl }); return r ? [NAMES[impl], nf.format(r.rate_limit.requests), nf.format(r.rate_limit.allowed), nf.format(r.rate_limit.requests - r.rate_limit.allowed)] : null; }).filter(Boolean));
+  bars(document.getElementById("fig-cache"), shareRows((r) => r.cache.upstream_fetches), { fmt: (v) => nf.format(v), unit: "upstream fetches" });
+  table(document.getElementById("fig-cache"), ["Workers", "Requests", "Upstream fetches", "Hit rate"], shareOrder.map((impl) => { const r = find(SH, { impl }); return r ? [NAMES[impl], nf.format(r.cache.requests), nf.format(r.cache.upstream_fetches), pctFmt((1 - r.cache.upstream_fetches / r.cache.requests) * 100)] : null; }).filter(Boolean));
+
+  const P = D.profile || [];
+  const CATS = [["gateway Ruby code", "Gateway code", C.ruby], ["Ruby core methods", "Ruby core methods", C.rubySoft], ["json extension", "json extension", "var(--ink-2)"], ["IO and syscalls", "IO and syscalls", C.go], ["async and io-event", "async and io-event", C.goSoft], ["garbage collector", "Garbage collector", C.grey]];
+  const PROFILES = [["v1", "raw", "First version, pass-through"], ["v1", "api", "First version, JSON route"], ["v2", "raw", "This version, pass-through"], ["v2", "api", "This version, API rewrite"]];
+  bars(document.getElementById("fig-profile"), PROFILES.map(([version, route, label]) => { const r = find(P, { version, route }); return r && { label, segs: CATS.filter(([key]) => r.shares[key]).map(([key, name, c]) => ({ v: r.shares[key], c, name })) }; }).filter(Boolean), { fmt: pctFmt, unit: "of samples", pad: 1.0 });
+  legend(document.getElementById("fig-profile"), CATS.map(([, name, color]) => ({ label: name, color, swatch: true })));
+  table(document.getElementById("fig-profile"), ["Profile", ...CATS.map(([, name]) => name)], PROFILES.map(([version, route, label]) => { const r = find(P, { version, route }); return r ? [label, ...CATS.map(([key]) => pctFmt(r.shares[key] || 0))] : null; }).filter(Boolean));
+
+  const sys = N.syscalls_per_request || [];
+  const sysKinds = [["read", "read", C.grey], ["write", "write", "var(--axis)"], ["writev", "writev", "var(--axis)"], ["fcntl", "fcntl", C.accent]];
+  bars(document.getElementById("fig-sys"), sys.map((r) => ({ label: r.label, segs: sysKinds.filter(([key]) => r[key]).map(([key, name, c]) => ({ v: r[key], c, name })) })), { fmt: (v) => String(Math.round(v * 10) / 10), unit: "syscalls", pad: 1.15 });
+  legend(document.getElementById("fig-sys"), [{ label: "read", color: C.grey, swatch: true }, { label: "write or writev", color: "var(--axis)", swatch: true }, { label: "fcntl", color: C.accent, swatch: true }]);
+  table(document.getElementById("fig-sys"), ["Version", "read", "write", "writev", "fcntl", "total"], sys.map((r) => [r.label, r.read || 0, r.write || 0, r.writev || 0, r.fcntl || 0, (r.read || 0) + (r.write || 0) + (r.writev || 0) + (r.fcntl || 0)].map(String)));
+
+  const heap = N.heap_init_sweep || [];
+  bars(document.getElementById("fig-heap"), heap.map((r) => ({ label: r.label, segs: [{ v: r.trim_rps, c: r.bytes === 2621440 ? C.ruby : C.grey }], note: `${nf.format(r.gcs)} GCs per Ractor` })), { fmt: k, unit: "req/s" });
+  table(document.getElementById("fig-heap"), ["Starting heap", "JSON req/s", "Pass-through req/s", "GCs per Ractor", "GC ms per Ractor", "Heap pages"], heap.map((r) => [r.label, nf.format(r.trim_rps), nf.format(r.raw_rps), nf.format(r.gcs), nf.format(r.gc_ms), nf.format(r.pages)]));
+
+  const T = D.tuning || [];
+  const ladder = [["ruby-stock", "Stock master", C.grey], ["ruby-heap", "+ 2.5 MB Ractor heap", C.grey], ["ruby-leaky", "+ io hooks removed", C.grey], ["ruby-ractor", "+ GC timer (final)", C.ruby], ["ruby-interp", "final, interpreter", C.rubySoft], ["ruby-zjit", "final, ZJIT", C.rubySoft]];
+  const tuneRows = [];
+  for (const route of ["api", "raw", "hit"]) {
+    tuneRows.push({ group: ROUTE_NAMES[route] });
+    for (const [impl, label, c] of ladder) { const r = find(T, { impl, route }); if (r) tuneRows.push({ label, segs: [{ v: r.rps, c }] }); }
+  }
+  bars(document.getElementById("fig-tuning"), tuneRows, { fmt: k, unit: "req/s" });
+  table(document.getElementById("fig-tuning"), ["Configuration", "API req/s", "Pass-through req/s", "Cache hit req/s"], ladder.map(([impl, label]) => [label, ...["api", "raw", "hit"].map((route) => { const r = find(T, { impl, route }); return r ? nf.format(r.rps) : "n/a"; })]));
+
+  const V = D.versions || [];
+  const vRows = [];
+  for (const route of ["api", "raw", "hit"]) {
+    for (const w of [1, 4]) {
+      vRows.push({ group: `${ROUTE_NAMES[route]}, ${w} Ractor${w > 1 ? "s" : ""}` });
+      [["ruby406-ractor", "4.0.6", C.grey], ["ruby-stock", "master, stock settings", C.rubySoft], ["ruby-ractor", "master, tuned", C.ruby]].forEach(([impl, label, c]) => { const v = rps(V, impl, w, route); if (v != null) vRows.push({ label, segs: [{ v, c }] }); });
+    }
+  }
+  bars(document.getElementById("fig-versions"), vRows, { fmt: k, unit: "req/s" });
+  legend(document.getElementById("fig-versions"), [{ label: "4.0.6", color: C.grey, swatch: true }, { label: "master, stock", color: C.rubySoft, swatch: true }, { label: "master, tuned", color: C.ruby, swatch: true }]);
+  table(document.getElementById("fig-versions"), ["Route and workers", "4.0.6 Ractors", "4.0.6 fork", "master stock", "master tuned"], ["api", "raw", "hit"].flatMap((route) => [1, 4].map((w) => [`${ROUTE_NAMES[route]}, ${w}`, ...["ruby406-ractor", "ruby406-fork", "ruby-stock", "ruby-ractor"].map((impl) => { const v = rps(V, impl, w, route); return v == null ? "n/a" : nf.format(v); })])));
+
+  const CC = D.concurrency || [];
+  const CONNS = [64, 256, 1024, 4096, 10000];
+  const concSeries = [["go-std", 4, "Go, 4 cores", C.go, false, "Go 4"], ["ruby-ractor", 4, "Ruby, 4 Ractors", C.ruby, false, "Ruby 4"], ["go-std", 1, "Go, 1 core", C.go, true, null], ["ruby-ractor", 1, "Ruby, 1 Ractor", C.ruby, true, "Ruby 1"]];
+  const concBase = { xs: CONNS, log: true, xName: "Connections", xFmt: (x) => (x >= 1000 ? x / 1000 + "k" : String(x)), xLabel: "open keep-alive connections", tipTitle: (x) => `${nf.format(x)} connections` };
+  lineChart(document.getElementById("fig-conc-rps"), { ...concBase, yFmt: k, tipFmt: reqFmt, tableFmt: (v) => nf.format(v), aria: "Requests per second against open connections with 50 ms upstream latency",
+    series: concSeries.map(([impl, w, label, color, dash, end]) => ({ label, color, dash, end, values: CONNS.map((c) => { const r = find(CC, { impl, workers: w, connections: c }); return r ? r.rps : null; }) })),
+    ref: { label: "20 req/s per connection", values: CONNS.map((c) => c * 20), inScale: true } });
+  lineChart(document.getElementById("fig-conc-p99"), { ...concBase, yFmt: (v) => Math.round(v) + " ms", tipFmt: ms, tableFmt: ms, aria: "p99 latency against open connections with 50 ms upstream latency",
+    series: concSeries.map(([impl, w, label, color, dash, end]) => ({ label, color, dash, end, values: CONNS.map((c) => { const r = find(CC, { impl, workers: w, connections: c }); return r ? r.latency_ms["99"] : null; }) })) });
+
+  const L = D.latency || [];
+  const latFig = document.getElementById("fig-latency");
+  if (latFig && L.length) {
+    const t = latFig.querySelector("table");
+    const head = el("tr", null, null, el("thead", null, null, t));
+    ["Route and rate", "Implementation", "Achieved req/s", "p50", "p90", "p99", "p99.9", "p99.99"].forEach((h) => el("th", null, h, head));
+    const body = el("tbody", null, null, t);
+    const order = ["go-std", "go-jsontext", "ruby-ractor", "ruby-fork"];
+    const rows = L.slice().sort((a, b) => (a.route === b.route ? 0 : a.route === "raw" ? -1 : 1) || a.rate - b.rate || order.indexOf(a.impl) - order.indexOf(b.impl));
+    let last = "";
+    for (const r of rows) {
+      const group = `${r.route === "api" ? "API rewrite" : "Pass-through"} at ${k(r.rate)}/s`;
+      const tr = el("tr", null, null, body);
+      el("td", null, group === last ? "" : group, tr);
+      last = group;
+      el("td", null, NAMES[r.impl] || r.impl, tr);
+      el("td", "num", nf.format(r.rps), tr);
+      ["50", "90", "99", "99.9", "99.99"].forEach((p) => el("td", "num", ms(r.latency_ms[p]), tr));
+    }
+  }
+
+  const loadSeries = [["ruby-ractor", "Ruby, Ractors", C.ruby, false, "Ractors"], ["ruby-fork", "Ruby, fork", C.ruby, true, "fork"], ["go-std", "Go", C.go, false, "Go"]];
+  lineChart(document.getElementById("fig-mem-load"), { xs: CPUS, xName: "Workers", xFmt: cpuFmt, xLabel: "workers (Go: GOMAXPROCS)", yFmt: (v) => Math.round(v) + " MB", tipFmt: (v) => Math.round(v) + " MB", tableFmt: (v) => (Math.round(v * 10) / 10).toFixed(1) + " MB", tipTitle: (x) => `${cpuFmt(x)} workers`, aria: "Peak memory against worker count under the API load",
+    series: loadSeries.map(([impl, label, color, dash, end]) => ({ label, color, dash, end, values: CPUS.map((w) => { const r = find(S, { impl, workers: w, route: "api" }); return r ? r.peak_pss_kb / 1024 : null; }) })) });
+
+  const I = D.idle || [];
+  const idleImpls = [["go-std", "Go", C.go], ["ruby-ractor", "Ruby, Ractors", C.ruby], ["ruby-fork", "Ruby, fork", C.rubySoft], ["ruby-thread", "Ruby, threads", C.grey]];
+  const perConn = (impl) => { const a = find(I, { impl, connections: 0 }), b = find(I, { impl, connections: 10000 }); return a && b ? (b.pss_kb - a.pss_kb) / 10000 : null; };
+  bars(document.getElementById("fig-mem-idle"), idleImpls.filter(([impl]) => perConn(impl) != null).map(([impl, label, c]) => ({ label, segs: [{ v: perConn(impl), c }] })), { fmt: (v) => v.toFixed(1) + " KB", unit: "per connection" });
+  table(document.getElementById("fig-mem-idle"), ["Implementation", "PSS, idle", "PSS, 1,000 held", "PSS, 10,000 held", "KB per connection"], idleImpls.map(([impl, label]) => { const at = (c) => { const r = find(I, { impl, connections: c }); return r ? Math.round(r.pss_kb / 1024) + " MB" : "n/a"; }; const p = perConn(impl); return [label, at(0), at(1000), at(10000), p == null ? "n/a" : p.toFixed(1)]; }));
+
+  const CA = D.caching || [];
+  const cacheImpls = [["ruby-ractor", "Ruby, Ractors", C.ruby], ["ruby-leaky", "Ruby, Ractors, no GC timer", C.accent], ["ruby-fork", "Ruby, fork", C.rubySoft], ["ruby-thread", "Ruby, threads", C.grey], ["go-std", "Go", C.go], ["spinel", "Spinel", C.goSoft]];
+  const cacheNames = Object.fromEntries(cacheImpls.map(([impl, label]) => [impl, label]));
+  const cacheRows = [];
+  for (const w of [4, 8]) {
+    cacheRows.push({ group: `${w} workers` });
+    for (const [impl, label, c] of cacheImpls) { const r = find(CA, { impl, workers: w }); if (r) cacheRows.push({ label, segs: [{ v: r.pss_kb_peak / 1024, c }], note: `${nf.format(r.upstream_fetches)} fetches` }); }
+  }
+  bars(document.getElementById("fig-mem-cache"), cacheRows, { fmt: (v) => nf.format(Math.round(v)) + " MB", unit: "peak PSS" });
+  table(document.getElementById("fig-mem-cache"), ["Implementation", "Workers", "Peak PSS", "Upstream fetches", "p99"], CA.map((r) => [cacheNames[r.impl] || r.impl, String(r.workers), nf.format(Math.round(r.pss_kb_peak / 1024)) + " MB", nf.format(r.upstream_fetches), ms(r.latency_ms["99"])]));
+
+  const RW = N.rewrite_us || [];
+  const rwRows = [];
+  for (const [key, title] of [["fields", "Four fields of each object"], ["document", "The whole document"]]) {
+    rwRows.push({ group: title });
+    RW.slice().sort((a, b) => a[key] - b[key]).forEach((r) => rwRows.push({ label: r.label, segs: [{ v: r[key], c: r.lang === "ruby" ? C.ruby : C.go }] }));
+  }
+  bars(document.getElementById("fig-rewrite"), rwRows, { fmt: (v) => v.toFixed(1) + " µs", unit: "per document" });
+  legend(document.getElementById("fig-rewrite"), [{ label: "Ruby", color: C.ruby, swatch: true }, { label: "Go", color: C.go, swatch: true }]);
+  table(document.getElementById("fig-rewrite"), ["Implementation", "Four fields µs", "Whole document µs"], RW.map((r) => [r.label, r.fields.toFixed(1), r.document.toFixed(1)]));
+
+  const J = (N.json_trim_us || []).slice().sort((a, b) => a.us - b.us);
+  bars(document.getElementById("fig-json"), J.map((r) => ({ label: r.label, segs: [{ v: r.us, c: r.lang === "ruby" ? C.ruby : C.go }], note: r.note })), { fmt: (v) => v.toFixed(1) + " µs", unit: "per trim" });
+  legend(document.getElementById("fig-json"), [{ label: "Ruby", color: C.ruby, swatch: true }, { label: "Go", color: C.go, swatch: true }]);
+  table(document.getElementById("fig-json"), ["Library", "µs per trim", "Allocations"], J.map((r) => [r.label, r.us.toFixed(1), r.allocs == null ? "n/a" : nf.format(r.allocs)]));
+
+  const tabs = [...document.querySelectorAll('#code [role="tab"]')];
+  const select = (tab) => {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => select(tab));
+    tab.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      select(next);
+      next.focus();
+    });
+  });
+
+  if (window.hljs) {
+    document.querySelectorAll("#code code").forEach((code) => {
+      const ln = [...code.querySelectorAll(".ln")];
+      const html = window.hljs.highlight(ln.map((l) => l.textContent).join("\n"), { language: code.dataset.lang, ignoreIllegals: true }).value.split("\n");
+      if (html.length === ln.length) ln.forEach((l, i) => { l.innerHTML = html[i]; });
+    });
+  }
+})();
+</script>

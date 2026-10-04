@@ -1,0 +1,9 @@
+[15:08:59] == profile
+[15:08:59] profile v1 raw
+[15:09:09]   {"gateway Ruby code" => 3.6, "async and io-event" => 15.3, "IO and syscalls" => 69.6, "Ruby core methods" => 9.4, "garbage collector" => 2.1}
+[15:09:09] profile v1 api
+[15:09:19]   {"garbage collector" => 7.7, "IO and syscalls" => 24.0, "gateway Ruby code" => 2.1, "async and io-event" => 4.6, "json extension" => 44.1, "Ruby core methods" => 17.4}
+[15:09:19] profile v2 raw
+[15:09:28]   {"IO and syscalls" => 47.5, "gateway Ruby code" => 10.7, "async and io-event" => 8.6, "Ruby core methods" => 29.5, "garbage collector" => 3.8}
+[15:09:28] profile v2 api
+[15:09:38]   {"Ruby core methods" => 39.6, "gateway Ruby code" => 25.3, "async and io-event" => 1.6, "garbage collector" => 7.6, "json extension" => 16.5, "IO and syscalls" => 9.4}

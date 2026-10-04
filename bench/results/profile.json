@@ -1,0 +1,52 @@
+[
+  {
+    "version": "v1",
+    "route": "raw",
+    "samples": 5982,
+    "shares": {
+      "IO and syscalls": 69.7,
+      "gateway Ruby code": 3.6,
+      "async and io-event": 15.5,
+      "Ruby core methods": 9.0,
+      "garbage collector": 2.2
+    }
+  },
+  {
+    "version": "v1",
+    "route": "api",
+    "samples": 5995,
+    "shares": {
+      "Ruby core methods": 16.3,
+      "gateway Ruby code": 2.2,
+      "async and io-event": 4.6,
+      "IO and syscalls": 24.2,
+      "json extension": 45.0,
+      "garbage collector": 7.7
+    }
+  },
+  {
+    "version": "v2",
+    "route": "raw",
+    "samples": 5986,
+    "shares": {
+      "gateway Ruby code": 9.7,
+      "async and io-event": 9.3,
+      "Ruby core methods": 28.4,
+      "IO and syscalls": 48.4,
+      "garbage collector": 4.1
+    }
+  },
+  {
+    "version": "v2",
+    "route": "api",
+    "samples": 5946,
+    "shares": {
+      "Ruby core methods": 41.8,
+      "gateway Ruby code": 24.2,
+      "async and io-event": 1.9,
+      "garbage collector": 7.2,
+      "IO and syscalls": 8.9,
+      "json extension": 15.9
+    }
+  }
+]

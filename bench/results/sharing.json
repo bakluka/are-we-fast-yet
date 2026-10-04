@@ -1,0 +1,194 @@
+[
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "metrics": {
+      "served": 968130,
+      "scrapes": [
+        968191,
+        968191,
+        968191,
+        968191,
+        968191,
+        968191,
+        968191,
+        968191
+      ]
+    },
+    "rate_limit": {
+      "limit_per_second": 1000,
+      "offered_per_second": 5000,
+      "duration": 10,
+      "requests": 49844,
+      "allowed": 11007
+    },
+    "cache": {
+      "ttl": 1,
+      "urls": 1000,
+      "rate": 40000,
+      "duration": 10,
+      "requests": 398537,
+      "upstream_fetches": 10000
+    }
+  },
+  {
+    "impl": "ruby-fork-unsynced",
+    "workers": 4,
+    "metrics": {
+      "served": 984443,
+      "scrapes": [
+        239915,
+        250422,
+        250954,
+        250954,
+        239915,
+        243212,
+        239915,
+        243212
+      ]
+    },
+    "rate_limit": {
+      "limit_per_second": 1000,
+      "offered_per_second": 5000,
+      "duration": 10,
+      "requests": 49842,
+      "allowed": 38870
+    },
+    "cache": {
+      "ttl": 1,
+      "urls": 1000,
+      "rate": 40000,
+      "duration": 10,
+      "requests": 398533,
+      "upstream_fetches": 38729
+    }
+  },
+  {
+    "impl": "ruby-thread",
+    "workers": 4,
+    "metrics": {
+      "served": 272776,
+      "scrapes": [
+        272837,
+        272837,
+        272837,
+        272837,
+        272837,
+        272837,
+        272837,
+        272837
+      ]
+    },
+    "rate_limit": {
+      "limit_per_second": 1000,
+      "offered_per_second": 5000,
+      "duration": 10,
+      "requests": 49845,
+      "allowed": 11000
+    },
+    "cache": {
+      "ttl": 1,
+      "urls": 1000,
+      "rate": 40000,
+      "duration": 10,
+      "requests": 398490,
+      "upstream_fetches": 10000
+    }
+  },
+  {
+    "impl": "go-std",
+    "workers": 4,
+    "metrics": {
+      "served": 1590723,
+      "scrapes": [
+        1590784,
+        1590784,
+        1590784,
+        1590784,
+        1590784,
+        1590784,
+        1590784,
+        1590784
+      ]
+    },
+    "rate_limit": {
+      "limit_per_second": 1000,
+      "offered_per_second": 5000,
+      "duration": 10,
+      "requests": 49844,
+      "allowed": 11000
+    },
+    "cache": {
+      "ttl": 1,
+      "urls": 1000,
+      "rate": 40000,
+      "duration": 10,
+      "requests": 398521,
+      "upstream_fetches": 10000
+    }
+  },
+  {
+    "impl": "spinel",
+    "workers": 4,
+    "metrics": {
+      "served": 737188,
+      "scrapes": [
+        737249,
+        737249,
+        737249,
+        737249,
+        737249,
+        737249,
+        737249,
+        737249
+      ]
+    },
+    "rate_limit": {
+      "limit_per_second": 1000,
+      "offered_per_second": 5000,
+      "duration": 10,
+      "requests": 49843,
+      "allowed": 11002
+    },
+    "cache": {
+      "ttl": 1,
+      "urls": 1000,
+      "rate": 40000,
+      "duration": 10,
+      "requests": 398524,
+      "upstream_fetches": 10000
+    }
+  },
+  {
+    "impl": "ruby-fork",
+    "workers": 4,
+    "metrics": {
+      "served": 966427,
+      "scrapes": [
+        965972,
+        966448,
+        966448,
+        966448,
+        966448,
+        966448,
+        966448,
+        966448
+      ]
+    },
+    "rate_limit": {
+      "limit_per_second": 1000,
+      "offered_per_second": 5000,
+      "duration": 10,
+      "requests": 49845,
+      "allowed": 11000
+    },
+    "cache": {
+      "ttl": 1,
+      "urls": 1000,
+      "rate": 40000,
+      "duration": 10,
+      "requests": 398506,
+      "upstream_fetches": 10000
+    }
+  }
+]

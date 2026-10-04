@@ -1,0 +1,20 @@
+[22:37:41] == idle
+[22:37:41] idle ruby-fork c=0
+[22:37:43]   pss 29573 kB
+[22:37:43] idle ruby-fork c=1000
+[22:37:46]   pss 70449 kB
+[22:37:46] idle ruby-fork c=10000
+[22:37:48]   pss 331737 kB
+[22:37:48] == latency
+[22:37:48] latency raw ruby-fork @50000
+[22:38:21]   p50 0.833 p99 1.95 p99.9 2.93
+[22:38:21] latency raw ruby-fork @100000
+[22:38:53]   p50 1.09 p99 3.66 p99.9 12.93
+[22:38:53] latency raw ruby-fork @150000
+[22:39:26]   p50 1.35 p99 20.96 p99.9 45.22
+[22:39:26] latency api ruby-fork @5000
+[22:39:59]   p50 0.9 p99 1.98 p99.9 4.18
+[22:39:59] latency api ruby-fork @10000
+[22:40:31]   p50 1.0 p99 2.92 p99.9 6.06
+[22:40:31] latency api ruby-fork @20000
+[22:41:04]   p50 1.32 p99 10.6 p99.9 23.61

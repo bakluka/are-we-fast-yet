@@ -1,0 +1,19 @@
+[15:06:27] == sharing
+[15:06:27] sharing ruby-ractor
+[15:06:51]   metrics {served: 1000662, scrapes: [1000723, 1000723, 1000723, 1000723, 1000723, 1000723, 1000723, 1000723]} limit 11010 fetches 10005
+[15:06:51] sharing ruby-fork
+[15:07:16]   metrics {served: 918097, scrapes: [247387, 213479, 228983, 228983, 228983, 247387, 213479, 228983]} limit 38585 fetches 38830
+[15:07:16] sharing ruby-thread
+[15:07:40]   metrics {served: 275735, scrapes: [275796, 275796, 275796, 275796, 275796, 275796, 275796, 275796]} limit 11000 fetches 10001
+[15:07:40] sharing go-std
+[15:08:04]   metrics {served: 1587748, scrapes: [1587805, 1587805, 1587805, 1587805, 1587805, 1587805, 1587805, 1587805]} limit 11000 fetches 10000
+[15:08:04] == profile
+[15:08:04] profile v1 raw
+run.rb:58:in 'Object#wait_until': timed out waiting (RuntimeError)
+	from run.rb:227:in 'Object#profile'
+	from run.rb:319:in 'block (2 levels) in <main>'
+	from run.rb:317:in 'Array#map'
+	from run.rb:317:in 'block in <main>'
+	from run.rb:347:in 'block in <main>'
+	from run.rb:345:in 'Array#each'
+	from run.rb:345:in '<main>'

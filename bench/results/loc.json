@@ -1,0 +1,30 @@
+{
+  "ruby": {
+    "ruby/bin/gateway": 3,
+    "ruby/gateway.rb": 17,
+    "ruby/lib/gateway.rb": 44,
+    "ruby/lib/gateway/app.rb": 31,
+    "ruby/lib/gateway/cache.rb": 26,
+    "ruby/lib/gateway/http.rb": 70,
+    "ruby/lib/gateway/keeper.rb": 99,
+    "ruby/lib/gateway/metrics.rb": 39,
+    "ruby/lib/gateway/rate_limit.rb": 18,
+    "ruby/lib/gateway/rewrite.rb": 29,
+    "ruby/lib/gateway/routes.rb": 22,
+    "ruby/lib/gateway/server.rb": 37,
+    "ruby/lib/gateway/tally.rb": 12,
+    "ruby/lib/gateway/upstream.rb": 50
+  },
+  "go": {
+    "go/cache.go": 28,
+    "go/gateway.go": 44,
+    "go/http.go": 177,
+    "go/main.go": 50,
+    "go/metrics.go": 47,
+    "go/ratelimit.go": 37,
+    "go/rewrite.go": 36,
+    "go/rewrite_jsontext.go": 74,
+    "go/rewrite_std.go": 47,
+    "go/upstream.go": 65
+  }
+}

@@ -1,0 +1,58 @@
+[22:04:28] == scaling
+[22:04:28] scaling raw ruby-ractor x1
+[22:05:00]   57811 rps [58216, 57811, 57426]
+[22:05:00] scaling raw ruby-ractor x2
+[22:05:32]   109559 rps [112036, 109096, 109559]
+[22:05:32] scaling raw ruby-ractor x4
+[22:06:03]   235549 rps [235549, 237042, 234056]
+[22:06:03] scaling raw ruby-ractor x8
+[22:06:35]   309927 rps [311245, 309927, 309383]
+[22:06:35] scaling raw ruby-fork x1
+[22:07:07]   57792 rps [57927, 57403, 57792]
+[22:07:07] scaling raw ruby-fork x2
+[22:07:38]   114923 rps [117441, 114923, 107529]
+[22:07:38] scaling raw ruby-fork x4
+[22:08:10]   209514 rps [206232, 210178, 209514]
+[22:08:10] scaling raw ruby-fork x8
+[22:08:42]   305117 rps [304507, 305117, 305615]
+[22:08:42] scaling api ruby-ractor x1
+[22:09:13]   8582 rps [8557, 8672, 8582]
+[22:09:13] scaling api ruby-ractor x2
+[22:09:45]   17113 rps [17113, 16020, 17365]
+[22:09:45] scaling api ruby-ractor x4
+[22:10:17]   34243 rps [34243, 34891, 34020]
+[22:10:17] scaling api ruby-ractor x8
+[22:10:48]   39526 rps [39526, 39507, 39734]
+[22:10:48] scaling api ruby-fork x1
+[22:11:20]   7715 rps [7838, 7715, 7715]
+[22:11:20] scaling api ruby-fork x2
+[22:11:52]   15916 rps [15916, 15460, 16052]
+[22:11:52] scaling api ruby-fork x4
+[22:12:23]   29584 rps [29913, 28278, 29584]
+[22:12:23] scaling api ruby-fork x8
+[22:12:55]   35434 rps [35224, 35434, 35802]
+[22:12:55] scaling hit ruby-ractor x1
+[22:13:27]   126413 rps [125991, 126602, 126413]
+[22:13:27] scaling hit ruby-ractor x2
+[22:13:58]   249968 rps [251111, 249968, 249539]
+[22:13:58] scaling hit ruby-ractor x4
+[22:14:30]   523396 rps [504780, 523396, 525829]
+[22:14:30] scaling hit ruby-ractor x8
+[22:15:02]   677368 rps [673601, 677368, 684320]
+[22:15:02] scaling hit ruby-fork x1
+[22:15:33]   45831 rps [45236, 45831, 45959]
+[22:15:33] scaling hit ruby-fork x2
+[22:16:05]   91279 rps [85511, 92121, 91279]
+[22:16:05] scaling hit ruby-fork x4
+[22:16:37]   170617 rps [170617, 168079, 171569]
+[22:16:37] scaling hit ruby-fork x8
+[22:17:09]   179167 rps [178222, 180239, 179167]
+[22:17:09] == caching
+[22:17:09] caching ruby-ractor x4
+[22:17:19]   pss 206676 kB fetches 10000 p99 1.76ms
+[22:17:19] caching ruby-fork x4
+[22:17:30]   pss 553459 kB fetches 10140 p99 16.25ms
+[22:17:30] caching ruby-ractor x8
+[22:17:40]   pss 256606 kB fetches 10000 p99 4.23ms
+[22:17:40] caching ruby-fork x8
+[22:17:51]   pss 808262 kB fetches 10534 p99 31.38ms

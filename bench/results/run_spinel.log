@@ -1,0 +1,82 @@
+[18:25:39] == scaling
+[18:25:39] scaling raw spinel x1
+[18:26:10]   42402 rps [42402, 42536, 42282]
+[18:26:10] scaling raw spinel x2
+[18:26:42]   109719 rps [108771, 109719, 110454]
+[18:26:42] scaling raw spinel x4
+[18:27:13]   175796 rps [175876, 175796, 175538]
+[18:27:13] scaling raw spinel x8
+[18:27:45]   218709 rps [218709, 223460, 217800]
+[18:27:45] scaling api spinel x1
+[18:28:16]   6995 rps [6995, 6890, 7049]
+[18:28:16] scaling api spinel x2
+[18:28:47]   14357 rps [14392, 13922, 14357]
+[18:28:47] scaling api spinel x4
+[18:29:19]   25443 rps [25669, 25217, 25443]
+[18:29:19] scaling api spinel x8
+[18:29:50]   33432 rps [33403, 33490, 33432]
+[18:29:50] scaling hit spinel x1
+[18:30:22]   82396 rps [82396, 82174, 82976]
+[18:30:22] scaling hit spinel x2
+[18:30:53]   247074 rps [249710, 241355, 247074]
+[18:30:53] scaling hit spinel x4
+[18:31:24]   290591 rps [286558, 331400, 290591]
+[18:31:24] scaling hit spinel x8
+[18:31:56]   254023 rps [303960, 225844, 254023]
+[18:31:56] == sharing
+[18:31:56] sharing spinel
+[18:32:20]   metrics {served: 761212, scrapes: [761272, 761272, 761272, 761272, 761272, 761272, 761272, 761272]} limit 11001 fetches 10000
+[18:32:20] == concurrency
+[18:32:20] concurrency spinel x4 c=64
+[18:32:33]   1253 rps p99 51.33ms
+[18:32:33] concurrency spinel x1 c=64
+[18:32:47]   1253 rps p99 51.75ms
+[18:32:47] concurrency spinel x4 c=256
+[18:33:00]   4996 rps p99 51.86ms
+[18:33:00] concurrency spinel x1 c=256
+[18:33:14]   4984 rps p99 52.53ms
+[18:33:14] concurrency spinel x4 c=1024
+[18:33:27]   19814 rps p99 53.6ms
+[18:33:27] concurrency spinel x1 c=1024
+[18:33:41]   19599 rps p99 55.24ms
+[18:33:41] concurrency spinel x4 c=4096
+[18:33:54]   39026 rps p99 113.11ms
+[18:33:54] concurrency spinel x1 c=4096
+[18:34:08]   23213 rps p99 193.65ms
+[18:34:08] concurrency spinel x4 c=10000
+[18:34:22]   42552 rps p99 441.05ms
+[18:34:22] concurrency spinel x1 c=10000
+[18:34:36]   19190 rps p99 901.44ms
+[18:34:36] == latency
+[18:34:36] latency raw spinel @50000
+[18:35:09]   p50 0.91 p99 2.55 p99.9 4.89
+[18:35:09] latency raw spinel @100000
+[18:35:42]   p50 1.37 p99 4.46 p99.9 6.59
+[18:35:42] latency raw spinel @150000
+[18:36:14]   p50 1.88 p99 9.57 p99.9 14.88
+[18:36:14] latency api spinel @5000
+[18:36:47]   p50 0.93 p99 2.12 p99.9 2.81
+[18:36:47] latency api spinel @10000
+[18:37:20]   p50 1.08 p99 2.9 p99.9 5.08
+[18:37:20] latency api spinel @20000
+[18:37:52]   p50 1.64 p99 6.83 p99.9 11.4
+[18:37:52] == idle
+[18:37:52] idle spinel c=0
+[18:37:55]   pss 1475 kB
+[18:37:55] idle spinel c=1000
+[18:37:57]   pss 41736 kB
+[18:37:57] idle spinel c=10000
+[18:38:00]   pss 251751 kB
+[18:38:00] == tuning
+[18:38:00] tuning raw spinel-stock
+[18:38:31]   143197 rps [147163, 141330, 143197]
+[18:38:31] tuning raw spinel
+[18:39:03]   174344 rps [174752, 174344, 173563]
+[18:39:03] tuning api spinel-stock
+[18:39:34]   12105 rps [11222, 12261, 12105]
+[18:39:34] tuning api spinel
+[18:40:06]   24547 rps [24678, 24547, 24153]
+[18:40:06] tuning hit spinel-stock
+[18:40:37]   207062 rps [185718, 207062, 222555]
+[18:40:37] tuning hit spinel
+[18:41:08]   317732 rps [317732, 290149, 344003]

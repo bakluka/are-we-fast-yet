@@ -1,0 +1,164 @@
+[
+  {
+    "impl": "go-std",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 5028,
+    "pss_kb_before": 3135,
+    "rss_kb": 5028,
+    "pss_kb": 3135
+  },
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 25220,
+    "pss_kb_before": 22192,
+    "rss_kb": 25112,
+    "pss_kb": 22084
+  },
+  {
+    "impl": "ruby-fork-unsynced",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 95808,
+    "pss_kb_before": 25684,
+    "rss_kb": 95808,
+    "pss_kb": 25684
+  },
+  {
+    "impl": "ruby-thread",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 23696,
+    "pss_kb_before": 20731,
+    "rss_kb": 23696,
+    "pss_kb": 20731
+  },
+  {
+    "impl": "spinel",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 3924,
+    "pss_kb_before": 1474,
+    "rss_kb": 3924,
+    "pss_kb": 1474
+  },
+  {
+    "impl": "go-std",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 5244,
+    "pss_kb_before": 3351,
+    "rss_kb": 21572,
+    "pss_kb": 19679
+  },
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 25140,
+    "pss_kb_before": 22189,
+    "rss_kb": 60136,
+    "pss_kb": 57058
+  },
+  {
+    "impl": "ruby-fork-unsynced",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 96604,
+    "pss_kb_before": 25533,
+    "rss_kb": 141280,
+    "pss_kb": 66899
+  },
+  {
+    "impl": "ruby-thread",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 23624,
+    "pss_kb_before": 20596,
+    "rss_kb": 52808,
+    "pss_kb": 49670
+  },
+  {
+    "impl": "spinel",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 3960,
+    "pss_kb_before": 1482,
+    "rss_kb": 44216,
+    "pss_kb": 41611
+  },
+  {
+    "impl": "go-std",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 4992,
+    "pss_kb_before": 3099,
+    "rss_kb": 139728,
+    "pss_kb": 137835
+  },
+  {
+    "impl": "ruby-ractor",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 25076,
+    "pss_kb_before": 22048,
+    "rss_kb": 295568,
+    "pss_kb": 292430
+  },
+  {
+    "impl": "ruby-fork-unsynced",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 96532,
+    "pss_kb_before": 25563,
+    "rss_kb": 366864,
+    "pss_kb": 326154
+  },
+  {
+    "impl": "ruby-thread",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 23484,
+    "pss_kb_before": 20578,
+    "rss_kb": 284148,
+    "pss_kb": 281115
+  },
+  {
+    "impl": "spinel",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 3960,
+    "pss_kb_before": 1510,
+    "rss_kb": 254404,
+    "pss_kb": 251827
+  },
+  {
+    "impl": "ruby-fork",
+    "workers": 4,
+    "connections": 0,
+    "rss_kb_before": 108064,
+    "pss_kb_before": 29574,
+    "rss_kb": 108064,
+    "pss_kb": 29573
+  },
+  {
+    "impl": "ruby-fork",
+    "workers": 4,
+    "connections": 1000,
+    "rss_kb_before": 107600,
+    "pss_kb_before": 29795,
+    "rss_kb": 149732,
+    "pss_kb": 70449
+  },
+  {
+    "impl": "ruby-fork",
+    "workers": 4,
+    "connections": 10000,
+    "rss_kb_before": 108156,
+    "pss_kb_before": 29839,
+    "rss_kb": 373348,
+    "pss_kb": 331737
+  }
+]

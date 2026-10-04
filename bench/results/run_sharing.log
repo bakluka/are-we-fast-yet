@@ -1,0 +1,11 @@
+[11:50:46] == sharing
+[11:50:46] sharing ruby-ractor
+[11:51:11]   metrics {served: 968130, scrapes: [968191, 968191, 968191, 968191, 968191, 968191, 968191, 968191]} limit 11007 fetches 10000
+[11:51:11] sharing ruby-fork
+[11:51:36]   metrics {served: 984443, scrapes: [239915, 250422, 250954, 250954, 239915, 243212, 239915, 243212]} limit 38870 fetches 38729
+[11:51:36] sharing ruby-thread
+[11:52:01]   metrics {served: 272776, scrapes: [272837, 272837, 272837, 272837, 272837, 272837, 272837, 272837]} limit 11000 fetches 10000
+[11:52:01] sharing go-std
+[11:52:26]   metrics {served: 1590723, scrapes: [1590784, 1590784, 1590784, 1590784, 1590784, 1590784, 1590784, 1590784]} limit 11000 fetches 10000
+[11:52:26] sharing spinel
+[11:52:51]   metrics {served: 737188, scrapes: [737249, 737249, 737249, 737249, 737249, 737249, 737249, 737249]} limit 11002 fetches 10000
