@@ -1,0 +1,3 @@
+#!/bin/sh
+export SPINEL_GC_THRESHOLD_KB="${SPINEL_GC_THRESHOLD_KB:-4096}"
+exec "$(dirname "$0")/../build/gateway" "$@"

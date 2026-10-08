@@ -1,0 +1,72 @@
+module Gateway
+  module HTTP
+    class Headers
+      def merge: (Hash[String, String] fields) -> Headers
+    end
+
+    class Request
+      attr_reader verb: String
+      attr_reader path: String
+      attr_reader query: String?
+      attr_reader headers: Headers
+      attr_reader body: String
+      attr_reader client: String
+    end
+
+    class Response
+      attr_reader status: Integer
+      attr_reader reason: String
+      attr_reader headers: Headers
+      attr_reader body: String
+
+      def with_header: (String name, String value) -> Response
+      def with_body: (String body) -> Response
+    end
+  end
+
+  class Counter
+    attr_reader value: Integer
+  end
+
+  class Upstream
+    attr_reader port: Integer
+    attr_reader inflight: Counter
+  end
+
+  class Cache
+    class Entry
+      attr_reader response: Gateway::HTTP::Response
+      attr_reader expires_at: Float
+    end
+
+    def call: (Gateway::HTTP::Request request) -> Gateway::HTTP::Response
+  end
+
+  class RateLimit
+    attr_reader per_second: Integer
+    attr_reader plans: Hash[String, Integer]
+    attr_reader windows: SharedMap
+
+    def call: (Gateway::HTTP::Request request) -> Gateway::HTTP::Response
+  end
+
+  class Rewrite
+    def call: (Gateway::HTTP::Request request) -> Gateway::HTTP::Response
+  end
+
+  class Pool
+    def call: (Gateway::HTTP::Request request) -> Gateway::HTTP::Response
+  end
+
+  class Balancer
+    def call: (Gateway::HTTP::Request request) -> Gateway::HTTP::Response
+  end
+
+  class Endpoint
+    def call: (Gateway::HTTP::Request request, Array[untyped] layers) -> Gateway::HTTP::Response
+  end
+
+  class App
+    def call: (Gateway::HTTP::Request request) -> Gateway::HTTP::Response
+  end
+end
