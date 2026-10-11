@@ -8,6 +8,10 @@ metrics. All state shared across workers. The question: how close does Ruby get?
 
 Ryzen 9800X3D, Ruby master (YJIT), Go 1.25.5, four cores.
 
+<img src="doc/scaling.svg" alt="Pass-through scaling: req/s by worker count" width="680">
+
+<img src="doc/throughput.svg" alt="Throughput at 4 workers across routes" width="680">
+
 **Throughput (req/s):**
 
 | Route | Ractors | Forks (keeper) | Forks (solo) | Threads | Go |
