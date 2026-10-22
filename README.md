@@ -1,16 +1,19 @@
 # Are We Fast Yet?
 
-One API gateway, two languages. Ruby (Ractors + async Fibers) and Go, same features,
-same machine, same cores. Routes, rate-limits, caches, rewrites JSON, reports Prometheus
-metrics. All state shared across workers. The question: how close does Ruby get?
+I wrote the same small API gateway twice, once in Ruby on Ractors and async fibers and
+once in Go, to see how far a single Ruby process gets on four cores now that Ractors run
+in parallel for real. The gateway routes by prefix, balances upstreams, rate-limits per
+API key, caches responses, rewrites JSON and serves Prometheus metrics, and the rate-limit
+windows, cache and counters are one copy shared by every worker. That last part is what
+the Ractor version is about: forks have to go through another process to share anything.
 
 ## Numbers
 
-Ryzen 9800X3D, Ruby master (YJIT), Go 1.25.5, four cores.
+Ryzen 9800X3D, Ruby master (YJIT), Go 1.25.5, four cores, everything over loopback.
 
-<img src="doc/scaling.svg" alt="Pass-through scaling: req/s by worker count" width="680">
+<img src="doc/scaling.svg" alt="Pass-through scaling: requests per second by worker count" width="720">
 
-<img src="doc/throughput.svg" alt="Throughput at 4 workers across routes" width="680">
+<img src="doc/throughput.svg" alt="Throughput at four workers across the three routes" width="720">
 
 **Throughput (req/s):**
 
@@ -32,8 +35,10 @@ Ruby beats the first one.
 | Forks (solo) | 38,870 | 38,729 | ~25% |
 | Go | 11,000 | 10,000 | all |
 
-Forks without IPC each keep their own windows, caches, and counters.
-Ractors share them in one address space with no serialization overhead. That's the whole pitch.
+Forks on their own each keep their own windows, caches and counters, so the limiter lets
+through four times too much and the cache gets filled four times over. Forks with the keeper
+process count correctly and pay for it on every cache hit. Ractors keep one copy in one
+address space.
 
 ## Layout
 
@@ -44,8 +49,7 @@ spinel/         Same gateway on Matz's Spinel AOT compiler (threads, no GVL)
 bench/run.rb    Harness: pins CPUs, runs wrk/wrk2, records everything
 bench/upstream  Backend server (12 KB JSON, configurable delay and body size)
 bench/results   Data from the last full run
-bench/report    Write-up generator
-patches/        ratomic build fix for master; draft Ractor GC bug report
+patches/        ratomic build fix for Ruby master
 ```
 
 ## Setup
@@ -76,8 +80,9 @@ curl -H 'X-Api-Key: free' 'localhost:8080/api/users?fields=id,name,email,created
 curl localhost:8080/metrics
 ```
 
-Ractors need a once-a-second `GC.start` nudge because master doesn't collect
-frozen garbage on its own yet (bug report in `patches/`).
+Ractor mode runs `GC.start` once a second from the main Ractor. On master a worker's own
+collections never free a shareable object, so a cache full of frozen responses grows
+without bound otherwise.
 
 ## Benchmark
 
@@ -86,6 +91,5 @@ ruby bench/run.rb                  # all scenarios, ~95 min
 ruby bench/run.rb scaling sharing  # pick some
 ```
 
-Pins gateway, upstream, and wrk to separate cores. Each point is the median
-of three 8 s runs. Everything in `bench/results/`; rebuild the report with
-`ruby bench/report/build.rb`.
+The harness pins the gateway, the upstream and wrk to separate cores and takes the median
+of three 8 s runs per point. Results land in `bench/results/`.
